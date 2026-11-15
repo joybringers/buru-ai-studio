@@ -1,18 +1,22 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { PRODUCT_NAME, creditsToGBP } from "@/config";
 import { useUser } from "@/context/UserContext";
+import TopUpModal from "@/components/TopUpModal";
 
 export default function Header() {
   const { balance, monthlySpent, monthlyCap } = useUser();
   const { data: session } = useSession();
   const pathname = usePathname();
+  const [showTopUp, setShowTopUp] = useState(false);
   const capPct = Math.min((monthlySpent / monthlyCap) * 100, 100);
   const nearCap = capPct >= 80;
 
   return (
+    <>
     <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-sm">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
         <div className="flex items-center gap-6">
@@ -64,12 +68,18 @@ export default function Header() {
             </div>
           </div>
 
-          <div>
+          <button
+            onClick={() => setShowTopUp(true)}
+            className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+          >
             <span className="font-medium text-zinc-100">{balance} cr</span>
-            <span className="text-zinc-600 text-xs ml-1.5">
+            <span className="text-zinc-600 text-xs ml-0.5">
               {creditsToGBP(balance)}
             </span>
-          </div>
+            {session?.user && (
+              <span className="text-xs text-indigo-400 ml-1">+ Top up</span>
+            )}
+          </button>
 
           {session?.user ? (
             <div className="flex items-center gap-3 pl-4 border-l border-zinc-800">
@@ -94,5 +104,8 @@ export default function Header() {
         </div>
       </div>
     </header>
+
+    {showTopUp && <TopUpModal onClose={() => setShowTopUp(false)} />}
+  </>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   IMAGE_MODELS,
@@ -26,6 +27,21 @@ export default function StudioPage() {
   const [modelId, setModelId] = useState("flux-schnell");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [topUpMsg, setTopUpMsg] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const topup = searchParams.get("topup");
+    if (topup === "success") {
+      refreshBalance();
+      setTopUpMsg("Credits added to your account!");
+      router.replace("/studio");
+      setTimeout(() => setTopUpMsg(null), 4000);
+    } else if (topup === "cancelled") {
+      router.replace("/studio");
+    }
+  }, [searchParams, refreshBalance, router]);
 
   const selectedModel = IMAGE_MODELS.find((m) => m.id === modelId) ?? IMAGE_MODELS[0];
   const blockedTerm = BLOCKED_TERMS.find((t) =>
@@ -100,6 +116,12 @@ export default function StudioPage() {
 
   return (
     <div className="max-w-2xl space-y-8">
+      {topUpMsg && (
+        <div className="bg-green-500/10 border border-green-500/30 text-green-400 text-sm px-4 py-3 rounded-xl">
+          {topUpMsg}
+        </div>
+      )}
+
       <div>
         <h1 className="text-2xl font-semibold text-zinc-100">Studio</h1>
         <p className="text-sm text-zinc-500 mt-1">
