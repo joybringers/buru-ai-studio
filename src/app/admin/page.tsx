@@ -1,13 +1,22 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+"use client";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-function isAdmin(email: string | null | undefined): boolean {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail || !email) return false;
-  return email.toLowerCase() === adminEmail.toLowerCase();
+interface AdminStats {
+  totalUsers: number;
+  totalJobs: number;
+  doneJobs: number;
+  failedJobs: number;
+  totalAssets: number;
+  creditsSold: number;
+  revenueGBP: number;
+  recentUsers: Array<{
+    id: string;
+    email: string;
+    creditBalance: number;
+    createdAt: string;
+  }>;
 }
 
 function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -20,27 +29,57 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
   );
 }
 
-export default async function AdminPage() {
-  const session = await auth();
-  if (!isAdmin(session?.user?.email)) redirect("/studio");
+export default function AdminPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const totalUsers = await prisma.user.count();
-  const totalJobs = await prisma.job.count();
-  const doneJobs = await prisma.job.count({ where: { status: "done" } });
-  const failedJobs = await prisma.job.count({ where: { status: "failed" } });
-  const totalAssets = await prisma.asset.count();
-  const creditsTopupSum = await prisma.creditLedgerEntry.aggregate({
-    where: { reason: "stripe_topup", delta: { gt: 0 } },
-    _sum: { delta: true },
-  });
-  const recentUsers = await prisma.user.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 25,
-    select: { id: true, email: true, creditBalance: true, createdAt: true },
-  });
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/auth/signin");
+      return;
+    }
+    if (status !== "authenticated") return;
 
-  const creditsSold = creditsTopupSum._sum.delta ?? 0;
-  const revenueGBP = (creditsSold * 0.016).toFixed(2);
+    fetch("/api/admin/stats")
+      .then((r) => {
+        if (r.status === 403) {
+          router.replace("/studio");
+          return null;
+        }
+        if (!r.ok) throw new Error("Failed to load stats");
+        return r.json();
+      })
+      .then((data) => { if (data) setStats(data); })
+      .catch((e) => setError(e.message));
+  }, [status, router]);
+
+  if (status === "loading" || (!stats && !error)) {
+    return (
+      <div className="max-w-5xl space-y-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-zinc-100">Admin</h1>
+          <p className="text-sm text-zinc-500 mt-1 animate-pulse">Loading…</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 h-24 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-5xl">
+        <p className="text-red-400 text-sm">{error}</p>
+      </div>
+    );
+  }
+
+  if (!stats) return null;
 
   return (
     <div className="max-w-5xl space-y-8">
@@ -50,17 +89,17 @@ export default async function AdminPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Users" value={totalUsers.toString()} />
+        <StatCard label="Users" value={stats.totalUsers.toString()} />
         <StatCard
           label="Jobs"
-          value={totalJobs.toString()}
-          sub={`${doneJobs} done · ${failedJobs} failed`}
+          value={stats.totalJobs.toString()}
+          sub={`${stats.doneJobs} done · ${stats.failedJobs} failed`}
         />
-        <StatCard label="Assets" value={totalAssets.toString()} />
+        <StatCard label="Assets" value={stats.totalAssets.toString()} />
         <StatCard
           label="Revenue"
-          value={`£${revenueGBP}`}
-          sub={`${creditsSold} credits sold`}
+          value={`£${stats.revenueGBP.toFixed(2)}`}
+          sub={`${stats.creditsSold} credits sold`}
         />
       </div>
 
@@ -78,7 +117,7 @@ export default async function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {recentUsers.map((u, i) => (
+              {stats.recentUsers.map((u, i) => (
                 <tr
                   key={u.id}
                   className={`border-b border-zinc-800/50 ${i % 2 === 0 ? "bg-zinc-950" : "bg-zinc-900/20"}`}
@@ -94,11 +133,9 @@ export default async function AdminPage() {
                   </td>
                 </tr>
               ))}
-              {recentUsers.length === 0 && (
+              {stats.recentUsers.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="px-4 py-8 text-center text-zinc-600">
-                    No users yet
-                  </td>
+                  <td colSpan={3} className="px-4 py-8 text-center text-zinc-600">No users yet</td>
                 </tr>
               )}
             </tbody>

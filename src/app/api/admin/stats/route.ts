@@ -16,43 +16,35 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const [
-    totalUsers,
-    totalJobs,
-    totalAssets,
-    jobsByStatus,
-    creditsTopupSum,
-    recentUsers,
-  ] = await Promise.all([
-    prisma.user.count(),
-    prisma.job.count(),
-    prisma.asset.count(),
-    prisma.job.groupBy({ by: ["status"], _count: { _all: true } }),
-    prisma.creditLedgerEntry.aggregate({
-      where: { reason: "stripe_topup", delta: { gt: 0 } },
-      _sum: { delta: true },
-    }),
-    prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 20,
-      select: {
-        id: true,
-        email: true,
-        creditBalance: true,
-        createdAt: true,
-        _count: { select: { jobs: true, assets: true } },
-      },
-    }),
-  ]);
+  const totalUsers = await prisma.user.count();
+  const totalJobs = await prisma.job.count();
+  const doneJobs = await prisma.job.count({ where: { status: "done" } });
+  const failedJobs = await prisma.job.count({ where: { status: "failed" } });
+  const totalAssets = await prisma.asset.count();
+  const creditsTopupSum = await prisma.creditLedgerEntry.aggregate({
+    where: { reason: "stripe_topup", delta: { gt: 0 } },
+    _sum: { delta: true },
+  });
+  const recentUsers = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 20,
+    select: {
+      id: true,
+      email: true,
+      creditBalance: true,
+      createdAt: true,
+    },
+  });
 
   const creditsSold = creditsTopupSum._sum.delta ?? 0;
-  const revenueGBP = +(creditsSold * 0.016).toFixed(2); // approx £0.016/credit
+  const revenueGBP = +(creditsSold * 0.016).toFixed(2);
 
   return NextResponse.json({
     totalUsers,
     totalJobs,
+    doneJobs,
+    failedJobs,
     totalAssets,
-    jobsByStatus: Object.fromEntries(jobsByStatus.map((r) => [r.status, r._count._all])),
     creditsSold,
     revenueGBP,
     recentUsers,
