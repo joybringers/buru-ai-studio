@@ -27,7 +27,7 @@ export async function GET() {
     prisma.user.count(),
     prisma.job.count(),
     prisma.asset.count(),
-    prisma.job.groupBy({ by: ["status"], _count: { id: true } }),
+    prisma.job.groupBy({ by: ["status"], _count: { _all: true } }),
     prisma.creditLedgerEntry.aggregate({
       where: { reason: "stripe_topup", delta: { gt: 0 } },
       _sum: { delta: true },
@@ -52,7 +52,7 @@ export async function GET() {
     totalUsers,
     totalJobs,
     totalAssets,
-    jobsByStatus: Object.fromEntries(jobsByStatus.map((r) => [r.status, r._count.id])),
+    jobsByStatus: Object.fromEntries(jobsByStatus.map((r) => [r.status, r._count._all])),
     creditsSold,
     revenueGBP,
     recentUsers,

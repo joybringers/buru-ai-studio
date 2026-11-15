@@ -35,7 +35,7 @@ export default async function AdminPage() {
     prisma.user.count(),
     prisma.job.count(),
     prisma.asset.count(),
-    prisma.job.groupBy({ by: ["status"], _count: { id: true } }),
+    prisma.job.groupBy({ by: ["status"], _count: { _all: true } }),
     prisma.creditLedgerEntry.aggregate({
       where: { reason: "stripe_topup", delta: { gt: 0 } },
       _sum: { delta: true },
@@ -55,7 +55,7 @@ export default async function AdminPage() {
 
   const creditsSold = creditsTopupSum._sum.delta ?? 0;
   const revenueGBP = (creditsSold * 0.016).toFixed(2);
-  const jobsByStatus = Object.fromEntries(jobsByStatusRaw.map((r) => [r.status, r._count.id]));
+  const jobsByStatus = Object.fromEntries(jobsByStatusRaw.map((r) => [r.status, r._count._all]));
 
   return (
     <div className="max-w-5xl space-y-8">
