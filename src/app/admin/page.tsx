@@ -27,15 +27,17 @@ export default async function AdminPage() {
   const [
     totalUsers,
     totalJobs,
+    doneJobs,
+    failedJobs,
     totalAssets,
-    jobsByStatusRaw,
     creditsTopupSum,
     recentUsers,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.job.count(),
+    prisma.job.count({ where: { status: "done" } }),
+    prisma.job.count({ where: { status: "failed" } }),
     prisma.asset.count(),
-    prisma.job.groupBy({ by: ["status"], _count: { _all: true } }),
     prisma.creditLedgerEntry.aggregate({
       where: { reason: "stripe_topup", delta: { gt: 0 } },
       _sum: { delta: true },
@@ -48,14 +50,12 @@ export default async function AdminPage() {
         email: true,
         creditBalance: true,
         createdAt: true,
-        _count: { select: { jobs: true, assets: true } },
       },
     }),
   ]);
 
   const creditsSold = creditsTopupSum._sum.delta ?? 0;
   const revenueGBP = (creditsSold * 0.016).toFixed(2);
-  const jobsByStatus = Object.fromEntries(jobsByStatusRaw.map((r) => [r.status, r._count._all]));
 
   return (
     <div className="max-w-5xl space-y-8">
@@ -66,11 +66,17 @@ export default async function AdminPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Users" value={totalUsers.toString()} />
-        <StatCard label="Jobs" value={totalJobs.toString()}
-          sub={`${jobsByStatus.done ?? 0} done · ${jobsByStatus.failed ?? 0} failed`} />
+        <StatCard
+          label="Jobs"
+          value={totalJobs.toString()}
+          sub={`${doneJobs} done · ${failedJobs} failed`}
+        />
         <StatCard label="Assets" value={totalAssets.toString()} />
-        <StatCard label="Revenue" value={`£${revenueGBP}`}
-          sub={`${creditsSold} credits sold`} />
+        <StatCard
+          label="Revenue"
+          value={`£${revenueGBP}`}
+          sub={`${creditsSold} credits sold`}
+        />
       </div>
 
       <section>
@@ -83,29 +89,31 @@ export default async function AdminPage() {
               <tr className="border-b border-zinc-800 bg-zinc-900/50">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">Email</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">Credits</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">Jobs</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">Assets</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">Joined</th>
               </tr>
             </thead>
             <tbody>
               {recentUsers.map((u, i) => (
-                <tr key={u.id}
-                  className={`border-b border-zinc-800/50 ${i % 2 === 0 ? "bg-zinc-950" : "bg-zinc-900/20"}`}>
+                <tr
+                  key={u.id}
+                  className={`border-b border-zinc-800/50 ${i % 2 === 0 ? "bg-zinc-950" : "bg-zinc-900/20"}`}
+                >
                   <td className="px-4 py-3 text-zinc-300">{u.email}</td>
                   <td className="px-4 py-3 text-right text-zinc-400">{u.creditBalance}</td>
-                  <td className="px-4 py-3 text-right text-zinc-400">{u._count.jobs}</td>
-                  <td className="px-4 py-3 text-right text-zinc-400">{u._count.assets}</td>
                   <td className="px-4 py-3 text-right text-zinc-500">
                     {new Date(u.createdAt).toLocaleDateString("en-GB", {
-                      day: "numeric", month: "short", year: "numeric",
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
                     })}
                   </td>
                 </tr>
               ))}
               {recentUsers.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-zinc-600">No users yet</td>
+                  <td colSpan={3} className="px-4 py-8 text-center text-zinc-600">
+                    No users yet
+                  </td>
                 </tr>
               )}
             </tbody>
