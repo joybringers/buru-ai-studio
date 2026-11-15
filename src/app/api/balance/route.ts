@@ -2,6 +2,8 @@ import { auth } from "@/auth";
 import { getBalance } from "@/lib/ledger";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {

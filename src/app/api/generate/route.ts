@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+
+export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { debitUser, creditUser, InsufficientBalanceError } from "@/lib/ledger";
 import { submitJob } from "@/lib/providers/index";

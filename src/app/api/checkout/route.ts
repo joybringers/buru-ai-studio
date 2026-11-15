@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+
+export const dynamic = "force-dynamic";
 import { auth } from "@/auth";
 import { CREDIT_PACKS } from "@/config";
 
