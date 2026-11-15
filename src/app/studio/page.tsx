@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -11,6 +11,32 @@ import {
 } from "@/config";
 import { BLOCKED_TERMS } from "@/data/fake";
 import { useUser } from "@/context/UserContext";
+
+function TopUpHandler({
+  refreshBalance,
+  onMessage,
+}: {
+  refreshBalance: () => Promise<void>;
+  onMessage: (msg: string | null) => void;
+}) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const topup = searchParams.get("topup");
+    if (topup === "success") {
+      refreshBalance();
+      onMessage("Credits added to your account!");
+      router.replace("/studio");
+      setTimeout(() => onMessage(null), 4000);
+    } else if (topup === "cancelled") {
+      router.replace("/studio");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
+}
 
 type Phase = "idle" | "generating" | "done" | "error";
 
@@ -29,20 +55,6 @@ export default function StudioPage() {
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [topUpMsg, setTopUpMsg] = useState<string | null>(null);
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  useEffect(() => {
-    const topup = searchParams.get("topup");
-    if (topup === "success") {
-      refreshBalance();
-      setTopUpMsg("Credits added to your account!");
-      router.replace("/studio");
-      setTimeout(() => setTopUpMsg(null), 4000);
-    } else if (topup === "cancelled") {
-      router.replace("/studio");
-    }
-  }, [searchParams, refreshBalance, router]);
 
   const selectedModel = MODELS.find((m) => m.id === modelId) ?? IMAGE_MODELS[0];
   const isVideoModel = selectedModel.type === "video";
@@ -118,6 +130,9 @@ export default function StudioPage() {
 
   return (
     <div className="max-w-2xl space-y-8">
+      <Suspense fallback={null}>
+        <TopUpHandler refreshBalance={refreshBalance} onMessage={setTopUpMsg} />
+      </Suspense>
       {topUpMsg && (
         <div className="bg-green-500/10 border border-green-500/30 text-green-400 text-sm px-4 py-3 rounded-xl">
           {topUpMsg}
