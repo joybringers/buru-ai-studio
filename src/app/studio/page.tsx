@@ -5,6 +5,7 @@ import Image from "next/image";
 import {
   IMAGE_MODELS,
   VIDEO_MODELS,
+  MODELS,
   creditsToGBP,
   Model,
 } from "@/config";
@@ -43,7 +44,8 @@ export default function StudioPage() {
     }
   }, [searchParams, refreshBalance, router]);
 
-  const selectedModel = IMAGE_MODELS.find((m) => m.id === modelId) ?? IMAGE_MODELS[0];
+  const selectedModel = MODELS.find((m) => m.id === modelId) ?? IMAGE_MODELS[0];
+  const isVideoModel = selectedModel.type === "video";
   const blockedTerm = BLOCKED_TERMS.find((t) =>
     prompt.toLowerCase().includes(t.toLowerCase())
   );
@@ -125,7 +127,7 @@ export default function StudioPage() {
       <div>
         <h1 className="text-2xl font-semibold text-zinc-100">Studio</h1>
         <p className="text-sm text-zinc-500 mt-1">
-          Generate images for your brand.
+          Generate images and videos for your brand.
         </p>
       </div>
 
@@ -170,8 +172,24 @@ export default function StudioPage() {
                 />
               ))}
             </div>
-            <p className="text-xs text-zinc-700 pt-1">
-              Video generation (Gen-4 Turbo, Veo 3.1 Fast) coming soon.
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
+              Video model
+            </h2>
+            <div className="grid grid-cols-2 gap-2">
+              {VIDEO_MODELS.map((m) => (
+                <ModelCard
+                  key={m.id}
+                  model={m}
+                  selected={modelId === m.id}
+                  onSelect={() => setModelId(m.id)}
+                />
+              ))}
+            </div>
+            <p className="text-xs text-zinc-600">
+              Generates a 5-second clip. Takes ~60 seconds.
             </p>
           </section>
 
@@ -205,21 +223,10 @@ export default function StudioPage() {
                   : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
               }`}
             >
-              Generate image
+              {isVideoModel ? "Generate video" : "Generate image"}
             </button>
           </section>
 
-          {/* Video models info */}
-          <section>
-            <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">
-              Coming soon · Video
-            </h2>
-            <div className="grid grid-cols-2 gap-2 opacity-40">
-              {VIDEO_MODELS.map((m) => (
-                <ModelCard key={m.id} model={m} selected={false} disabled />
-              ))}
-            </div>
-          </section>
         </>
       )}
 
@@ -231,7 +238,7 @@ export default function StudioPage() {
           </p>
           <div className="aspect-video rounded-xl bg-zinc-800 animate-pulse" />
           <p className="text-xs text-zinc-600">
-            This usually takes 5–30 seconds.
+            {isVideoModel ? "Video generation takes ~60 seconds." : "This usually takes 5–30 seconds."}
           </p>
         </section>
       )}
@@ -240,13 +247,23 @@ export default function StudioPage() {
       {phase === "done" && resultUrl && (
         <section className="space-y-4">
           <div className="aspect-video rounded-xl overflow-hidden relative bg-zinc-800">
-            <Image
-              src={resultUrl}
-              alt={prompt}
-              fill
-              className="object-cover"
-              unoptimized
-            />
+            {isVideoModel ? (
+              <video
+                src={resultUrl}
+                controls
+                autoPlay
+                loop
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Image
+                src={resultUrl}
+                alt={prompt}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            )}
             <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1.5 z-10">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
               AI-generated

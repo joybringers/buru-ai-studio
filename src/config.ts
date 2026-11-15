@@ -38,20 +38,12 @@ export const MODELS: Model[] = [
     description: "Strong at text",
   },
   {
-    id: "gen4-turbo",
-    name: "Gen-4 Turbo",
-    provider: "Runway",
+    id: "minimax-video",
+    name: "MiniMax Video",
+    provider: "fal.ai",
     type: "video",
-    credits: 25,
-    description: "5-sec clip, fast",
-  },
-  {
-    id: "veo-31-fast",
-    name: "Veo 3.1 Fast",
-    provider: "Runway",
-    type: "video",
-    credits: 75,
-    description: "5-sec clip, quality",
+    credits: 50,
+    description: "5-sec clip",
   },
 ];
 

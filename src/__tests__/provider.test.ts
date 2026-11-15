@@ -49,29 +49,39 @@ describe("providers", () => {
   // ── Video models ────────────────────────────────────────────────────────────
 
   describe("submitJob — video models", () => {
-    it("throws for gen4-turbo", async () => {
-      await expect(submitJob("a prompt", "gen4-turbo")).rejects.toThrow(
-        "not yet available"
+    it("submits minimax-video and returns request_id", async () => {
+      mockFal.queue.submit.mockResolvedValueOnce({ request_id: "vid-req-1" });
+      const id = await submitJob("a cinematic scene", "minimax-video");
+      expect(id).toBe("vid-req-1");
+      expect(mockFal.queue.submit).toHaveBeenCalledWith(
+        "fal-ai/minimax/video-01-live",
+        expect.objectContaining({ input: { prompt: "a cinematic scene" } })
       );
     });
 
-    it("throws for veo-31-fast", async () => {
-      await expect(submitJob("a prompt", "veo-31-fast")).rejects.toThrow(
-        "not yet available"
+    it("throws for unknown video model", async () => {
+      await expect(submitJob("a prompt", "gen4-turbo")).rejects.toThrow(
+        "Unknown model"
       );
     });
   });
 
   describe("pollJob — video models", () => {
-    it("throws for gen4-turbo", async () => {
-      await expect(pollJob("req-1", "gen4-turbo")).rejects.toThrow(
-        "not yet available"
-      );
+    it("returns done with video url for minimax-video", async () => {
+      mockFal.queue.status.mockResolvedValueOnce({ status: "COMPLETED" });
+      mockFal.queue.result.mockResolvedValueOnce({
+        data: { video: { url: "https://example.com/clip.mp4" } },
+      });
+      const result = await pollJob("vid-req-1", "minimax-video");
+      expect(result).toEqual({
+        status: "done",
+        result: { url: "https://example.com/clip.mp4", mimeType: "video/mp4" },
+      });
     });
 
-    it("throws for veo-31-fast", async () => {
+    it("throws for unknown video model", async () => {
       await expect(pollJob("req-1", "veo-31-fast")).rejects.toThrow(
-        "not yet available"
+        "Unknown model"
       );
     });
   });

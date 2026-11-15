@@ -51,17 +51,12 @@ export default function AssetDrawer({ asset, onClose }: Props) {
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           <div className="aspect-video rounded-xl overflow-hidden relative bg-zinc-800">
             {isVideo ? (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 rounded-full bg-black/50 backdrop-blur flex items-center justify-center">
-                  <svg
-                    className="w-5 h-5 text-white ml-0.5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </div>
-              </div>
+              <video
+                src={asset.url}
+                controls
+                loop
+                className="w-full h-full object-cover"
+              />
             ) : (
               <Image
                 src={asset.url}

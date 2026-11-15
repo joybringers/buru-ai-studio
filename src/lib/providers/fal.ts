@@ -3,13 +3,17 @@ import type { GenerateStatus } from "./types";
 
 fal.config({ credentials: process.env.FAL_KEY ?? "" });
 
-// Map our internal model IDs to fal.ai endpoint IDs.
-// Keep model IDs in sync with src/config.ts IMAGE_MODELS.
-const FAL_MODEL_MAP: Record<string, string> = {
+const FAL_IMAGE_MAP: Record<string, string> = {
   "flux-schnell": "fal-ai/flux/schnell",
   "flux-dev": "fal-ai/flux/dev",
   "nano-banana-pro": "fal-ai/ideogram/v2",
 };
+
+const FAL_VIDEO_MAP: Record<string, string> = {
+  "minimax-video": "fal-ai/minimax/video-01-live",
+};
+
+const FAL_MODEL_MAP: Record<string, string> = { ...FAL_IMAGE_MAP, ...FAL_VIDEO_MAP };
 
 function falEndpoint(modelId: string): string {
   const endpoint = FAL_MODEL_MAP[modelId];
@@ -17,17 +21,16 @@ function falEndpoint(modelId: string): string {
   return endpoint;
 }
 
-function pickUrl(data: Record<string, unknown>): string {
-  // Both FLUX and Ideogram return images[].url
-  const images = data.images as Array<{ url: string }> | undefined;
-  const url = images?.[0]?.url;
-  if (!url) throw new Error("fal.ai response contained no image URL");
-  return url;
-}
-
-function pickMime(data: Record<string, unknown>): string {
-  const images = data.images as Array<{ content_type?: string }> | undefined;
-  return images?.[0]?.content_type ?? "image/jpeg";
+function pickResult(modelId: string, data: Record<string, unknown>): { url: string; mimeType: string } {
+  if (FAL_VIDEO_MAP[modelId]) {
+    const video = data.video as { url?: string } | undefined;
+    if (!video?.url) throw new Error("fal.ai response contained no video URL");
+    return { url: video.url, mimeType: "video/mp4" };
+  }
+  const images = data.images as Array<{ url: string; content_type?: string }> | undefined;
+  const img = images?.[0];
+  if (!img?.url) throw new Error("fal.ai response contained no image URL");
+  return { url: img.url, mimeType: img.content_type ?? "image/jpeg" };
 }
 
 /** Submit a generation job to fal.ai queue. Returns the provider request ID. */
@@ -35,9 +38,9 @@ export async function submit(prompt: string, modelId: string): Promise<string> {
   if (!process.env.FAL_KEY) throw new Error("FAL_KEY env var is not set");
 
   const endpoint = falEndpoint(modelId);
-  const { request_id } = await fal.queue.submit(endpoint, {
-    input: { prompt, num_images: 1 },
-  });
+  const isVideo = !!FAL_VIDEO_MAP[modelId];
+  const input = isVideo ? { prompt } : { prompt, num_images: 1 };
+  const { request_id } = await fal.queue.submit(endpoint, { input });
   return request_id;
 }
 
@@ -56,10 +59,7 @@ export async function poll(
   if (status.status === "COMPLETED") {
     const res = await fal.queue.result(endpoint, { requestId: providerJobId });
     const data = res.data as Record<string, unknown>;
-    return {
-      status: "done",
-      result: { url: pickUrl(data), mimeType: pickMime(data) },
-    };
+    return { status: "done", result: pickResult(modelId, data) };
   }
 
   if ((status.status as string) === "FAILED") {
