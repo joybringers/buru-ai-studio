@@ -6,6 +6,7 @@ fal.config({ credentials: process.env.FAL_KEY ?? "" });
 const FAL_IMAGE_MAP: Record<string, string> = {
   "flux-schnell": "fal-ai/flux/schnell",
   "flux-dev": "fal-ai/flux/dev",
+  "flux-pro": "fal-ai/flux-pro/v1.1",
   "nano-banana-pro": "fal-ai/ideogram/v2",
 };
 

@@ -4,11 +4,21 @@ import Nodemailer from "next-auth/providers/nodemailer";
 import { createTransport } from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "./auth.config";
+import { creditUser } from "@/lib/ledger";
+
+const WELCOME_CREDITS = 50;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  events: {
+    async createUser({ user }) {
+      if (user.id) {
+        await creditUser(user.id, WELCOME_CREDITS, "welcome_bonus");
+      }
+    },
+  },
   callbacks: {
     ...authConfig.callbacks,
     jwt({ token, user }) {

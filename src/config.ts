@@ -30,8 +30,16 @@ export const MODELS: Model[] = [
     description: "High quality",
   },
   {
+    id: "flux-pro",
+    name: "FLUX Pro",
+    provider: "fal.ai",
+    type: "image",
+    credits: 25,
+    description: "Best detail",
+  },
+  {
     id: "nano-banana-pro",
-    name: "Nano Banana Pro",
+    name: "Ideogram v2",
     provider: "fal.ai",
     type: "image",
     credits: 20,

@@ -30,6 +30,7 @@ export default function Header() {
             {[
               { href: "/studio", label: "Studio" },
               { href: "/gallery", label: "Gallery" },
+              ...(session?.user ? [{ href: "/admin", label: "Admin" }] : []),
             ].map(({ href, label }) => (
               <Link
                 key={href}
