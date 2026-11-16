@@ -33,11 +33,7 @@ export default function Header() {
             <nav className="hidden sm:flex items-center gap-1 text-sm">
               {[
                 { href: "/studio", label: "Studio" },
-                { href: "/chat", label: "Chat" },
-                { href: "/create", label: "Quick Starts" },
-                { href: "/gallery", label: "Gallery" },
                 { href: "/#pricing", label: "Pricing" },
-                ...(session?.user ? [{ href: "/admin", label: "Admin" }] : []),
               ].map(({ href, label }) => (
                 <Link
                   key={href}

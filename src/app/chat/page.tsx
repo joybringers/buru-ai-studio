@@ -139,7 +139,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-56px)] max-w-3xl mx-auto px-4">
+    <div className="flex flex-col min-h-screen max-w-3xl mx-auto px-4">
 
       {/* Header */}
       <div className="pt-10 pb-4 flex items-center justify-between">

@@ -286,7 +286,7 @@ export default function StudioPage() {
   const I2V_MODELS = VIDEO_MODELS.filter((m) => m.inputType === "image");
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col gap-6">
+    <div className="min-h-screen flex flex-col gap-6 px-6 md:px-8 py-6">
       <Suspense fallback={null}>
         <TopUpHandler refreshBalance={refreshBalance} onMessage={setTopUpMsg} />
       </Suspense>

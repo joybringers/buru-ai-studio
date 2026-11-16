@@ -44,7 +44,7 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="-mt-8 min-h-[calc(100vh-56px)] flex flex-col lg:flex-row">
+    <div className="min-h-screen flex flex-col lg:flex-row">
 
       {/* ── LEFT: animated preview panel ──────────────────────────────── */}
       <div
