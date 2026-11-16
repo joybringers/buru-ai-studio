@@ -8,6 +8,8 @@ export interface Model {
   name: string;
   provider: string;
   type: "image" | "video";
+  /** Only set on image-to-video models — requires an uploaded image as input */
+  inputType?: "image";
   credits: number;
   description: string;
 }
@@ -47,11 +49,37 @@ export const MODELS: Model[] = [
   },
   {
     id: "minimax-video",
-    name: "MiniMax Video",
+    name: "MiniMax T2V",
     provider: "fal.ai",
     type: "video",
     credits: 50,
-    description: "5-sec clip",
+    description: "5-sec text to video",
+  },
+  {
+    id: "kling-t2v",
+    name: "Kling v1.6",
+    provider: "fal.ai",
+    type: "video",
+    credits: 60,
+    description: "Cinematic quality T2V",
+  },
+  {
+    id: "kling-i2v",
+    name: "Kling Animate",
+    provider: "fal.ai",
+    type: "video",
+    inputType: "image",
+    credits: 60,
+    description: "Animate your image",
+  },
+  {
+    id: "minimax-i2v",
+    name: "MiniMax Animate",
+    provider: "fal.ai",
+    type: "video",
+    inputType: "image",
+    credits: 50,
+    description: "Smooth image animation",
   },
 ];
 

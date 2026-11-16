@@ -4,16 +4,25 @@ import type { GenerateStatus } from "./types";
 fal.config({ credentials: process.env.FAL_KEY ?? "" });
 
 const FAL_IMAGE_MAP: Record<string, string> = {
-  "flux-schnell": "fal-ai/flux/schnell",
-  "flux-dev": "fal-ai/flux/dev",
-  "flux-pro": "fal-ai/flux-pro/v1.1",
-  "nano-banana-pro": "fal-ai/ideogram/v2",
+  "flux-schnell":   "fal-ai/flux/schnell",
+  "flux-dev":       "fal-ai/flux/dev",
+  "flux-pro":       "fal-ai/flux-pro/v1.1",
+  "nano-banana-pro":"fal-ai/ideogram/v2",
 };
 
-const FAL_VIDEO_MAP: Record<string, string> = {
+// text-to-video endpoints
+const FAL_T2V_MAP: Record<string, string> = {
   "minimax-video": "fal-ai/minimax/video-01",
+  "kling-t2v":     "fal-ai/kling-video/v1.6/standard/text-to-video",
 };
 
+// image-to-video endpoints
+const FAL_I2V_MAP: Record<string, string> = {
+  "kling-i2v":    "fal-ai/kling-video/v1.6/standard/image-to-video",
+  "minimax-i2v":  "fal-ai/minimax/video-01-live",
+};
+
+const FAL_VIDEO_MAP: Record<string, string> = { ...FAL_T2V_MAP, ...FAL_I2V_MAP };
 const FAL_MODEL_MAP: Record<string, string> = { ...FAL_IMAGE_MAP, ...FAL_VIDEO_MAP };
 
 function falEndpoint(modelId: string): string {
@@ -52,25 +61,58 @@ const IDEOGRAM_RATIO_MAP: Record<AspectRatio, string> = {
   "3:4":  "ASPECT_3_4",
 };
 
-function buildInput(prompt: string, modelId: string, aspectRatio: AspectRatio) {
-  if (FAL_VIDEO_MAP[modelId]) return { prompt };
+function buildInput(
+  prompt: string,
+  modelId: string,
+  aspectRatio: AspectRatio,
+  imageUrl?: string
+): Record<string, unknown> {
+  // Image-to-video
+  if (FAL_I2V_MAP[modelId]) {
+    if (!imageUrl) throw new Error("Image URL required for image-to-video models");
+    if (modelId === "minimax-i2v") {
+      return { prompt, first_frame_image: imageUrl, prompt_optimizer: true };
+    }
+    // kling-i2v
+    return { prompt, image_url: imageUrl, duration: "5" };
+  }
+
+  // Text-to-video
+  if (FAL_T2V_MAP[modelId]) {
+    if (modelId === "kling-t2v") {
+      const ar = ["16:9","9:16","1:1"].includes(aspectRatio) ? aspectRatio : "16:9";
+      return { prompt, duration: "5", aspect_ratio: ar };
+    }
+    return { prompt }; // minimax-video
+  }
+
+  // Image generation
   if (modelId === "nano-banana-pro") {
     return { prompt, aspect_ratio: IDEOGRAM_RATIO_MAP[aspectRatio] ?? "ASPECT_1_1" };
   }
   return { prompt, num_images: 1, image_size: FLUX_SIZE_MAP[aspectRatio] ?? "square_hd" };
 }
 
+/** Upload a file to fal.ai storage. Returns a CDN URL the generation endpoints can reference. */
+export async function uploadToStorage(file: File): Promise<string> {
+  if (!process.env.FAL_KEY) throw new Error("FAL_KEY env var is not set");
+  // fal.storage.upload returns a CDN URL
+  const url = await fal.storage.upload(file);
+  return url;
+}
+
 /** Submit a generation job to fal.ai queue. Returns the provider request ID. */
 export async function submit(
   prompt: string,
   modelId: string,
-  aspectRatio: AspectRatio = "1:1"
+  aspectRatio: AspectRatio = "1:1",
+  imageUrl?: string
 ): Promise<string> {
   if (!process.env.FAL_KEY) throw new Error("FAL_KEY env var is not set");
 
   const endpoint = falEndpoint(modelId);
   const { request_id } = await fal.queue.submit(endpoint, {
-    input: buildInput(prompt, modelId, aspectRatio),
+    input: buildInput(prompt, modelId, aspectRatio, imageUrl),
   });
   return request_id;
 }

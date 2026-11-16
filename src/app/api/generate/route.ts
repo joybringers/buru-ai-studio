@@ -23,13 +23,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { prompt, modelId, aspectRatio: rawRatio } = body as {
-    prompt?: unknown; modelId?: unknown; aspectRatio?: unknown;
+  const { prompt, modelId, aspectRatio: rawRatio, imageUrl: rawImageUrl } = body as {
+    prompt?: unknown; modelId?: unknown; aspectRatio?: unknown; imageUrl?: unknown;
   };
   const aspectRatio: AspectRatio =
     typeof rawRatio === "string" && VALID_RATIOS.includes(rawRatio as AspectRatio)
       ? (rawRatio as AspectRatio)
       : "1:1";
+  const imageUrl = typeof rawImageUrl === "string" && rawImageUrl.startsWith("https://")
+    ? rawImageUrl
+    : undefined;
 
   if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
     return NextResponse.json({ error: "prompt is required" }, { status: 400 });
@@ -54,6 +57,12 @@ export async function POST(req: Request) {
     },
   });
 
+  // I2V models require a source image URL
+  if (model.inputType === "image" && !imageUrl) {
+    await prisma.job.update({ where: { id: job.id }, data: { status: "failed" } });
+    return NextResponse.json({ error: "imageUrl is required for this model" }, { status: 400 });
+  }
+
   // Debit credits server-side — cost comes from config, never the request.
   try {
     await debitUser(userId, model.credits, "image_gen", job.id);
@@ -70,7 +79,7 @@ export async function POST(req: Request) {
 
   // Submit to the provider; refund on failure.
   try {
-    const providerJobId = await submitJob(prompt.trim(), modelId, aspectRatio);
+    const providerJobId = await submitJob(prompt.trim(), modelId, aspectRatio, imageUrl);
     await prisma.job.update({
       where: { id: job.id },
       data: { providerJobId, status: "running" },

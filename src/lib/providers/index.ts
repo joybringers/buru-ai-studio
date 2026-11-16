@@ -2,6 +2,7 @@ import * as falProvider from "./fal";
 import type { GenerateStatus } from "./types";
 
 export type { GenerateResult, GenerateStatus } from "./types";
+export { uploadToStorage } from "./fal";
 
 export type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
 
@@ -9,10 +10,11 @@ export type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
 export async function submitJob(
   prompt: string,
   modelId: string,
-  aspectRatio: AspectRatio = "1:1"
+  aspectRatio: AspectRatio = "1:1",
+  imageUrl?: string
 ): Promise<string> {
   if (falProvider.supportedModelIds.includes(modelId)) {
-    return falProvider.submit(prompt, modelId, aspectRatio);
+    return falProvider.submit(prompt, modelId, aspectRatio, imageUrl);
   }
   throw new Error(`Unknown model: ${modelId}`);
 }

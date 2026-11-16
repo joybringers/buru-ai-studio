@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -10,6 +10,9 @@ import {
   creditsToGBP,
   Model,
 } from "@/config";
+import { BLOCKED_TERMS } from "@/data/fake";
+import { PROMPT_SUGGESTIONS } from "@/data/prompt-suggestions";
+import { useUser } from "@/context/UserContext";
 
 type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
 
@@ -28,9 +31,8 @@ interface HistoryItem {
   createdAt: string;
   job: { prompt: string; modelId: string };
 }
-import { BLOCKED_TERMS } from "@/data/fake";
-import { PROMPT_SUGGESTIONS } from "@/data/prompt-suggestions";
-import { useUser } from "@/context/UserContext";
+
+// ── Suspense wrappers for useSearchParams ─────────────────────────────────────
 
 function TopUpHandler({
   refreshBalance,
@@ -41,7 +43,6 @@ function TopUpHandler({
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
-
   useEffect(() => {
     const topup = searchParams.get("topup");
     if (topup === "success") {
@@ -54,7 +55,6 @@ function TopUpHandler({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   return null;
 }
 
@@ -81,82 +81,120 @@ function ReferralHandler({ onMessage }: { onMessage: (msg: string | null) => voi
   return null;
 }
 
-type Phase = "idle" | "generating" | "done" | "error";
+// ── Main component ────────────────────────────────────────────────────────────
+
+type Phase = "idle" | "uploading" | "generating" | "done" | "error";
 
 const POLL_INTERVAL_MS = 2500;
-const IMAGE_POLL_TIMEOUT_MS = 120_000;  // 2 min for images
-const VIDEO_POLL_TIMEOUT_MS = 360_000;  // 6 min for video
+const IMAGE_POLL_TIMEOUT_MS = 120_000;
+const VIDEO_POLL_TIMEOUT_MS = 360_000;
 
-function sleep(ms: number) {
-  return new Promise<void>((r) => setTimeout(r, ms));
-}
+function sleep(ms: number) { return new Promise<void>((r) => setTimeout(r, ms)); }
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://buruai.elmorilx.com";
 
 export default function StudioPage() {
   const { balance, refreshBalance } = useUser();
   const { data: session } = useSession();
+
   const [phase, setPhase] = useState<Phase>("idle");
   const [prompt, setPrompt] = useState("");
   const [modelId, setModelId] = useState("flux-schnell");
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [topUpMsg, setTopUpMsg] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [elapsed, setElapsed] = useState(0);
+  const [copied, setCopied] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [previewItem, setPreviewItem] = useState<HistoryItem | null>(null);
   const [suggestions, setSuggestions] = useState(() =>
     [...PROMPT_SUGGESTIONS].sort(() => Math.random() - 0.5).slice(0, 4)
   );
 
-  const referralLink = session?.user?.id
-    ? `${APP_URL}/?ref=${session.user.id}`
-    : null;
-
-  function copyReferral() {
-    if (!referralLink) return;
-    navigator.clipboard.writeText(referralLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  function shuffleSuggestions() {
-    setSuggestions([...PROMPT_SUGGESTIONS].sort(() => Math.random() - 0.5).slice(0, 4));
-  }
+  // Image-to-video state
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+  const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const selectedModel = MODELS.find((m) => m.id === modelId) ?? IMAGE_MODELS[0];
   const isVideoModel = selectedModel.type === "video";
-  const blockedTerm = BLOCKED_TERMS.find((t) =>
-    prompt.toLowerCase().includes(t.toLowerCase())
-  );
+  const isI2V = selectedModel.inputType === "image";
+  const isT2V = isVideoModel && !isI2V;
+
+  // Clear uploaded image when switching away from I2V models
+  useEffect(() => {
+    if (!isI2V) {
+      setUploadedImageUrl(null);
+      setLocalImagePreview(null);
+    }
+  }, [isI2V]);
+
+  const referralLink = session?.user?.id ? `${APP_URL}/?ref=${session.user.id}` : null;
+
+  const blockedTerm = BLOCKED_TERMS.find((t) => prompt.toLowerCase().includes(t.toLowerCase()));
   const insufficientBalance = balance < selectedModel.credits;
   const canGenerate =
     !blockedTerm &&
     !insufficientBalance &&
     prompt.trim().length > 0 &&
-    phase === "idle";
+    phase === "idle" &&
+    (!isI2V || !!uploadedImageUrl);
 
-  // Elapsed timer while generating
+  // Elapsed timer
   useEffect(() => {
     if (phase !== "generating") { setElapsed(0); return; }
     const id = setInterval(() => setElapsed((s) => s + 1), 1000);
     return () => clearInterval(id);
   }, [phase]);
 
-  // Load generation history
+  // History
   useEffect(() => {
     fetch("/api/studio/history")
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setHistory(data); })
       .catch(() => {});
-  }, [phase]); // refresh after each generation attempt
+  }, [phase]);
+
+  // ── Image upload ────────────────────────────────────────────────────────────
+
+  async function handleImageFile(file: File) {
+    setPhase("uploading");
+    setErrorMsg(null);
+
+    // Local preview immediately
+    const reader = new FileReader();
+    reader.onload = (e) => setLocalImagePreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+
+    const form = new FormData();
+    form.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok) { setErrorMsg(data.error ?? "Upload failed"); setPhase("error"); return; }
+      setUploadedImageUrl(data.url);
+      setPhase("idle");
+    } catch {
+      setErrorMsg("Upload failed — please try again");
+      setPhase("error");
+    }
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) handleImageFile(file);
+  }
+
+  // ── Generation ──────────────────────────────────────────────────────────────
 
   async function handleGenerate() {
     setPhase("generating");
     setErrorMsg(null);
     setResultUrl(null);
+    setPreviewItem(null);
 
     let jobId: string;
     try {
@@ -164,17 +202,14 @@ export default function StudioPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: prompt.trim(),
+          prompt: prompt.trim() || "animate naturally",
           modelId,
           ...(isVideoModel ? {} : { aspectRatio }),
+          ...(isI2V && uploadedImageUrl ? { imageUrl: uploadedImageUrl } : {}),
         }),
       });
       const body = await res.json();
-      if (!res.ok) {
-        setErrorMsg(body.error ?? "Generation failed");
-        setPhase("error");
-        return;
-      }
+      if (!res.ok) { setErrorMsg(body.error ?? "Generation failed"); setPhase("error"); return; }
       jobId = body.jobId;
     } catch {
       setErrorMsg("Network error — please try again");
@@ -201,12 +236,9 @@ export default function StudioPage() {
           await refreshBalance();
           return;
         }
-      } catch {
-        // transient fetch error — keep polling
-      }
+      } catch { /* keep polling */ }
     }
-
-    setErrorMsg("Timed out waiting for result. Check your gallery in a moment.");
+    setErrorMsg("Timed out. Check your gallery in a moment.");
     setPhase("error");
   }
 
@@ -214,17 +246,30 @@ export default function StudioPage() {
     setPhase("idle");
     setResultUrl(null);
     setErrorMsg(null);
+    if (isI2V) { setUploadedImageUrl(null); setLocalImagePreview(null); }
   }
 
+  function copyReferral() {
+    if (!referralLink) return;
+    navigator.clipboard.writeText(referralLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+
+  const T2V_MODELS = VIDEO_MODELS.filter((m) => !m.inputType);
+  const I2V_MODELS = VIDEO_MODELS.filter((m) => m.inputType === "image");
+
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col">
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col gap-6">
       <Suspense fallback={null}>
         <TopUpHandler refreshBalance={refreshBalance} onMessage={setTopUpMsg} />
       </Suspense>
       <ReferralHandler onMessage={setTopUpMsg} />
 
       {topUpMsg && (
-        <div className="bg-green-500/10 border border-green-500/30 text-green-400 text-sm px-4 py-2.5 rounded-xl mb-4">
+        <div className="bg-green-500/10 border border-green-500/30 text-green-400 text-sm px-4 py-2.5 rounded-xl">
           {topUpMsg}
         </div>
       )}
@@ -232,7 +277,7 @@ export default function StudioPage() {
       {/* Two-column layout */}
       <div className="flex gap-6 flex-1 lg:flex-row flex-col">
 
-        {/* ── LEFT: controls ── */}
+        {/* ── LEFT: controls ─────────────────────────────────────────────── */}
         <div className="lg:w-[400px] shrink-0 space-y-5">
 
           <div>
@@ -245,35 +290,31 @@ export default function StudioPage() {
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe what you want to create…"
-              rows={4}
-              disabled={phase === "generating"}
+              placeholder={isI2V
+                ? "Describe the motion — e.g. 'camera slowly zooms in, leaves blow in wind' (optional)"
+                : "Describe what you want to create…"}
+              rows={isI2V ? 3 : 4}
+              disabled={phase === "generating" || phase === "uploading"}
               className="w-full rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 p-4 text-sm resize-none focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
             />
-
-            {/* Suggestions */}
-            {!prompt && phase === "idle" && (
+            {/* Suggestions — only for image/T2V when empty */}
+            {!prompt && !isI2V && phase === "idle" && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-zinc-600">Try a prompt</span>
-                  <button onClick={shuffleSuggestions} className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
-                    ↻ More
-                  </button>
+                  <button onClick={() => setSuggestions([...PROMPT_SUGGESTIONS].sort(() => Math.random() - 0.5).slice(0, 4))}
+                    className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">↻ More</button>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {suggestions.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setPrompt(s)}
-                      className="text-xs bg-zinc-900 border border-zinc-800 hover:border-zinc-600 text-zinc-500 hover:text-zinc-200 px-2.5 py-1.5 rounded-lg transition-colors text-left"
-                    >
+                    <button key={s} onClick={() => setPrompt(s)}
+                      className="text-xs bg-zinc-900 border border-zinc-800 hover:border-zinc-600 text-zinc-500 hover:text-zinc-200 px-2.5 py-1.5 rounded-lg transition-colors text-left">
                       {s}
                     </button>
                   ))}
                 </div>
               </div>
             )}
-
             {blockedTerm && (
               <div className="rounded-lg bg-red-950/60 border border-red-800 px-3 py-2.5 text-xs text-red-300">
                 <span className="font-medium">Prompt blocked.</span> Cannot generate likenesses of{" "}
@@ -282,30 +323,84 @@ export default function StudioPage() {
             )}
           </div>
 
-          {/* Aspect ratio (image only) */}
-          {!isVideoModel && (
+          {/* I2V upload zone */}
+          {isI2V && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Aspect ratio</p>
+              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Source image</p>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageFile(f); }} />
+
+              {localImagePreview ? (
+                <div className="relative rounded-xl overflow-hidden border border-zinc-700 bg-zinc-900">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={localImagePreview} alt="Source" className="w-full h-40 object-cover" />
+                  {phase === "uploading" && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <span className="text-xs text-zinc-300 animate-pulse">Uploading…</span>
+                    </div>
+                  )}
+                  {phase !== "uploading" && (
+                    <button onClick={() => { setUploadedImageUrl(null); setLocalImagePreview(null); }}
+                      className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white text-xs px-2 py-1 rounded-lg transition-colors">
+                      Change
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div
+                  onDrop={handleDrop}
+                  onDragOver={(e) => e.preventDefault()}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-zinc-700 hover:border-indigo-500/60 rounded-xl p-6 text-center cursor-pointer transition-colors space-y-2"
+                >
+                  <div className="mx-auto w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-zinc-400">Drop image here or click to browse</p>
+                  <p className="text-xs text-zinc-600">JPEG, PNG, WebP · max 10 MB</p>
+                </div>
+              )}
+
+              {/* Use from gallery */}
+              {history.filter((h) => !h.mimeType.startsWith("video")).length > 0 && !localImagePreview && (
+                <div className="space-y-1.5">
+                  <p className="text-xs text-zinc-600">Or pick from your gallery:</p>
+                  <div className="flex gap-1.5 overflow-x-auto pb-1">
+                    {history.filter((h) => !h.mimeType.startsWith("video")).slice(0, 8).map((item) => (
+                      <button key={item.id}
+                        onClick={() => {
+                          setUploadedImageUrl(item.url);
+                          setLocalImagePreview(item.url);
+                        }}
+                        className="shrink-0 w-14 h-14 rounded-lg overflow-hidden border border-zinc-800 hover:border-indigo-500/60 relative transition-all">
+                        <Image src={item.url} alt={item.job.prompt} fill className="object-cover" unoptimized />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Aspect ratio (image + T2V Kling only) */}
+          {!isI2V && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
+                {isT2V ? "Aspect ratio" : "Aspect ratio"}
+              </p>
               <div className="flex gap-1.5 flex-wrap">
-                {ASPECT_RATIOS.map((ar) => (
-                  <button
-                    key={ar.id}
-                    onClick={() => setAspectRatio(ar.id)}
+                {(isT2V ? ASPECT_RATIOS.filter((r) => ["16:9","9:16","1:1"].includes(r.id)) : ASPECT_RATIOS).map((ar) => (
+                  <button key={ar.id} onClick={() => setAspectRatio(ar.id)}
                     disabled={phase === "generating"}
                     className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg border text-xs transition-all disabled:opacity-50 ${
                       aspectRatio === ar.id
                         ? "border-indigo-500 bg-indigo-950/30 text-indigo-300"
                         : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
-                    }`}
-                  >
-                    <span
-                      className={`border rounded-sm ${aspectRatio === ar.id ? "border-indigo-400" : "border-zinc-600"}`}
-                      style={{
-                        width: `${Math.round(14 * ar.w / Math.max(ar.w, ar.h))}px`,
-                        height: `${Math.round(14 * ar.h / Math.max(ar.w, ar.h))}px`,
-                        display: "inline-block",
-                      }}
-                    />
+                    }`}>
+                    <span className={`border rounded-sm ${aspectRatio === ar.id ? "border-indigo-400" : "border-zinc-600"}`}
+                      style={{ width: `${Math.round(14 * ar.w / Math.max(ar.w, ar.h))}px`, height: `${Math.round(14 * ar.h / Math.max(ar.w, ar.h))}px`, display: "inline-block" }} />
                     {ar.label}
                   </button>
                 ))}
@@ -318,31 +413,31 @@ export default function StudioPage() {
             <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Image</p>
             <div className="grid grid-cols-2 gap-2">
               {IMAGE_MODELS.map((m) => (
-                <ModelCard
-                  key={m.id}
-                  model={m}
-                  selected={modelId === m.id}
-                  onSelect={() => setModelId(m.id)}
-                  disabled={phase === "generating"}
-                />
+                <ModelCard key={m.id} model={m} selected={modelId === m.id}
+                  onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
               ))}
             </div>
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Video</p>
+            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Text → Video</p>
             <div className="grid grid-cols-2 gap-2">
-              {VIDEO_MODELS.map((m) => (
-                <ModelCard
-                  key={m.id}
-                  model={m}
-                  selected={modelId === m.id}
-                  onSelect={() => setModelId(m.id)}
-                  disabled={phase === "generating"}
-                />
+              {T2V_MODELS.map((m) => (
+                <ModelCard key={m.id} model={m} selected={modelId === m.id}
+                  onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
               ))}
             </div>
-            <p className="text-xs text-zinc-700">Generates a 5-second clip · takes ~3 min</p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Image → Video</p>
+            <div className="grid grid-cols-2 gap-2">
+              {I2V_MODELS.map((m) => (
+                <ModelCard key={m.id} model={m} selected={modelId === m.id}
+                  onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
+              ))}
+            </div>
+            <p className="text-xs text-zinc-700">Upload any image · generates a 5-second animated clip · ~3–5 min</p>
           </div>
 
           {/* Generate */}
@@ -354,21 +449,21 @@ export default function StudioPage() {
                 <span className="text-xs font-normal text-zinc-500 ml-1">{creditsToGBP(selectedModel.credits)}</span>
               </span>
             </div>
+            {isI2V && !uploadedImageUrl && phase === "idle" && (
+              <p className="text-xs text-zinc-600">Upload a source image to enable generation</p>
+            )}
             {insufficientBalance && (
               <p className="text-xs text-amber-400 bg-amber-950/40 border border-amber-800 rounded-lg px-3 py-2">
                 Need {selectedModel.credits} cr · you have {balance} cr
               </p>
             )}
-            <button
-              disabled={!canGenerate}
-              onClick={handleGenerate}
+            <button disabled={!canGenerate} onClick={handleGenerate}
               className={`w-full py-2.5 rounded-lg text-sm font-medium transition-all ${
                 canGenerate
                   ? "bg-indigo-600 hover:bg-indigo-500 text-white"
                   : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-              }`}
-            >
-              {isVideoModel ? "Generate video" : "Generate image"} · {selectedModel.credits} cr
+              }`}>
+              {isI2V ? "Animate image" : isVideoModel ? "Generate video" : "Generate image"} · {selectedModel.credits} cr
             </button>
             <div className="flex justify-between items-center text-xs text-zinc-600">
               <span>Balance: {balance} cr</span>
@@ -384,15 +479,10 @@ export default function StudioPage() {
                 <span className="text-xs text-zinc-600">per referral</span>
               </div>
               <div className="flex gap-2">
-                <input
-                  readOnly
-                  value={referralLink}
-                  className="flex-1 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-500 text-xs px-3 py-2 truncate focus:outline-none"
-                />
-                <button
-                  onClick={copyReferral}
-                  className="shrink-0 px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium transition-colors"
-                >
+                <input readOnly value={referralLink}
+                  className="flex-1 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-500 text-xs px-3 py-2 truncate focus:outline-none" />
+                <button onClick={copyReferral}
+                  className="shrink-0 px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium transition-colors">
                   {copied ? "✓" : "Copy"}
                 </button>
               </div>
@@ -400,9 +490,10 @@ export default function StudioPage() {
           )}
         </div>
 
-        {/* ── RIGHT: canvas ── */}
+        {/* ── RIGHT: canvas ───────────────────────────────────────────────── */}
         <div className="flex-1 min-h-[400px] lg:min-h-0">
-          {/* History preview (clicked thumbnail) */}
+
+          {/* History preview */}
           {phase === "idle" && previewItem && (
             <div className="h-full min-h-[400px] rounded-2xl overflow-hidden relative bg-zinc-900 border border-zinc-800 group">
               {previewItem.mimeType.startsWith("video") ? (
@@ -417,63 +508,93 @@ export default function StudioPage() {
                     <a href={previewItem.url} download target="_blank" rel="noopener noreferrer"
                       className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg">Download</a>
                     <button onClick={() => setPreviewItem(null)}
-                      className="text-xs bg-zinc-700 hover:bg-zinc-600 text-zinc-200 px-3 py-1.5 rounded-lg">✕ Close</button>
+                      className="text-xs bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg">✕</button>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Idle */}
-          {phase === "idle" && !resultUrl && !previewItem && (
+          {/* I2V canvas: uploaded image preview */}
+          {phase === "idle" && !previewItem && isI2V && localImagePreview && (
+            <div className="h-full min-h-[400px] rounded-2xl overflow-hidden relative bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={localImagePreview} alt="Source" className="max-w-full max-h-full object-contain" />
+              <div className="absolute top-3 left-3 bg-indigo-600/80 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                Source image
+              </div>
+            </div>
+          )}
+
+          {/* Idle empty */}
+          {phase === "idle" && !previewItem && (!isI2V || !localImagePreview) && !resultUrl && (
             <div className="h-full min-h-[400px] rounded-2xl border border-zinc-800 bg-zinc-900/30 flex flex-col items-center justify-center gap-4 p-8">
               {errorMsg ? (
                 <div className="text-center space-y-2">
                   <p className="text-sm text-red-400">{errorMsg}</p>
-                  <button onClick={handleStartOver} className="text-xs text-zinc-500 hover:text-zinc-300 underline">
-                    Try again
-                  </button>
+                  <button onClick={handleStartOver} className="text-xs text-zinc-500 hover:text-zinc-300 underline">Try again</button>
                 </div>
               ) : (
                 <>
                   <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                    </svg>
+                    {isI2V ? (
+                      <svg className="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                      </svg>
+                    ) : (
+                      <svg className="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                      </svg>
+                    )}
                   </div>
                   <div className="text-center space-y-1">
-                    <p className="text-sm text-zinc-400">Your creation will appear here</p>
-                    <p className="text-xs text-zinc-600">Write a prompt and hit generate</p>
+                    <p className="text-sm text-zinc-400">
+                      {isI2V ? "Upload an image to animate it" : "Your creation will appear here"}
+                    </p>
+                    <p className="text-xs text-zinc-600">
+                      {isI2V ? "Pick a model on the left, upload your image, then hit Animate" : "Write a prompt and hit generate"}
+                    </p>
                   </div>
                 </>
               )}
             </div>
           )}
 
+          {/* Uploading */}
+          {phase === "uploading" && (
+            <div className="h-full min-h-[400px] rounded-2xl border border-zinc-800 bg-zinc-900/30 flex flex-col items-center justify-center gap-4">
+              <div className="w-10 h-10 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+              <p className="text-sm text-zinc-400 animate-pulse">Uploading image…</p>
+            </div>
+          )}
+
           {/* Generating */}
           {phase === "generating" && (
             <div className="h-full min-h-[400px] rounded-2xl border border-zinc-800 bg-zinc-900/30 flex flex-col items-center justify-center gap-5">
-              <div className="relative w-16 h-16">
-                <svg className="w-16 h-16 -rotate-90 text-indigo-500" viewBox="0 0 64 64" fill="none">
-                  <circle cx="32" cy="32" r="28" stroke="currentColor" strokeOpacity="0.15" strokeWidth="4" />
-                  <circle
-                    cx="32" cy="32" r="28"
-                    stroke="currentColor" strokeWidth="4"
-                    strokeLinecap="round"
-                    strokeDasharray="176"
-                    strokeDashoffset="44"
-                    className="animate-spin origin-center"
-                    style={{ animationDuration: "1.4s" }}
-                  />
-                </svg>
-              </div>
-              <div className="text-center space-y-1">
-                <p className="text-sm font-medium text-zinc-300">
-                  Generating on {selectedModel.name}
-                </p>
-                <p className="text-xs text-zinc-600">
-                  {elapsed}s elapsed · {isVideoModel ? "~3 min for video" : "usually 5–30 s"}
-                </p>
+              {/* Show source image faintly for I2V */}
+              {isI2V && localImagePreview && (
+                <div className="absolute inset-0 rounded-2xl overflow-hidden opacity-20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={localImagePreview} alt="" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="relative z-10 flex flex-col items-center gap-5">
+                <div className="relative w-16 h-16">
+                  <svg className="w-16 h-16 -rotate-90 text-indigo-500" viewBox="0 0 64 64" fill="none">
+                    <circle cx="32" cy="32" r="28" stroke="currentColor" strokeOpacity="0.15" strokeWidth="4" />
+                    <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" strokeLinecap="round"
+                      strokeDasharray="176" strokeDashoffset="44"
+                      className="animate-spin origin-center" style={{ animationDuration: "1.4s" }} />
+                  </svg>
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-sm font-medium text-zinc-300">
+                    {isI2V ? `Animating with ${selectedModel.name}` : `Generating on ${selectedModel.name}`}
+                  </p>
+                  <p className="text-xs text-zinc-600">
+                    {elapsed}s elapsed · {isVideoModel ? "~3–5 min for video" : "usually 5–30 s"}
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -481,58 +602,28 @@ export default function StudioPage() {
           {/* Done */}
           {phase === "done" && resultUrl && (
             <div className="h-full min-h-[400px] rounded-2xl overflow-hidden relative bg-zinc-900 border border-zinc-800 group">
-              {isVideoModel ? (
-                <video
-                  src={resultUrl}
-                  controls
-                  autoPlay
-                  loop
-                  className="w-full h-full object-contain"
-                />
+              {selectedModel.type === "video" ? (
+                <video src={resultUrl} controls autoPlay loop className="w-full h-full object-contain" />
               ) : (
-                <Image
-                  src={resultUrl}
-                  alt={prompt}
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
+                <Image src={resultUrl} alt={prompt} fill className="object-contain" unoptimized />
               )}
-
-              {/* Overlay toolbar */}
               <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4 translate-y-full group-hover:translate-y-0 transition-transform">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs text-zinc-400 truncate">{prompt}</p>
                   <div className="flex gap-2 shrink-0">
-                    <a
-                      href={resultUrl}
-                      download
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg transition-colors"
-                    >
-                      Download
-                    </a>
-                    <button
-                      onClick={handleStartOver}
-                      className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors"
-                    >
-                      New
-                    </button>
+                    <a href={resultUrl} download target="_blank" rel="noopener noreferrer"
+                      className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg transition-colors">Download</a>
+                    <button onClick={handleStartOver}
+                      className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors">New</button>
                   </div>
                 </div>
               </div>
-
-              {/* Badge */}
               <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
                 {selectedModel.name}
               </div>
-
-              <a
-                href="/gallery"
-                className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-zinc-300 hover:text-white text-xs font-medium px-2.5 py-1 rounded-full transition-colors"
-              >
+              <a href="/gallery"
+                className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-zinc-300 hover:text-white text-xs font-medium px-2.5 py-1 rounded-full transition-colors">
                 Gallery →
               </a>
             </div>
@@ -547,14 +638,12 @@ export default function StudioPage() {
             <p className="text-xs font-semibold text-zinc-600 uppercase tracking-widest">Recent generations</p>
             <a href="/gallery" className="text-xs text-zinc-600 hover:text-indigo-400 transition-colors">View all →</a>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex gap-2 overflow-x-auto pb-1">
             {history.map((item) => (
-              <button
-                key={item.id}
+              <button key={item.id}
                 onClick={() => { setPreviewItem(item); setPhase("idle"); setResultUrl(null); setErrorMsg(null); }}
                 className="shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-zinc-800 hover:border-indigo-500/60 transition-all relative group"
-                title={item.job.prompt}
-              >
+                title={item.job.prompt}>
                 {item.mimeType.startsWith("video") ? (
                   <video src={item.url} muted className="w-full h-full object-cover" />
                 ) : (
@@ -573,28 +662,17 @@ export default function StudioPage() {
 }
 
 function ModelCard({
-  model,
-  selected,
-  onSelect,
-  disabled,
+  model, selected, onSelect, disabled,
 }: {
-  model: Model;
-  selected: boolean;
-  onSelect?: () => void;
-  disabled?: boolean;
+  model: Model; selected: boolean; onSelect?: () => void; disabled?: boolean;
 }) {
   return (
-    <button
-      onClick={onSelect}
-      disabled={disabled}
+    <button onClick={onSelect} disabled={disabled}
       className={`rounded-xl border p-3 text-left transition-all ${
-        disabled
-          ? "cursor-not-allowed border-zinc-800 bg-zinc-900 opacity-60"
-          : selected
-          ? "border-indigo-500 ring-1 ring-indigo-500/20 bg-indigo-950/30"
-          : "border-zinc-800 bg-zinc-900 hover:border-zinc-700 hover:bg-zinc-800/60"
-      }`}
-    >
+        disabled ? "cursor-not-allowed border-zinc-800 bg-zinc-900 opacity-60"
+        : selected ? "border-indigo-500 ring-1 ring-indigo-500/20 bg-indigo-950/30"
+        : "border-zinc-800 bg-zinc-900 hover:border-zinc-700 hover:bg-zinc-800/60"
+      }`}>
       <p className="text-xs font-semibold text-zinc-200 leading-tight">{model.name}</p>
       <p className="text-xs text-zinc-600 mt-0.5 leading-snug">{model.description}</p>
       <p className="text-xs font-semibold text-zinc-100 mt-1.5">
