@@ -40,11 +40,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.className} bg-zinc-950 text-zinc-100 min-h-screen`}
+        className={`${inter.className} bg-black text-zinc-100 min-h-screen`}
       >
         <Providers>
           <Header />
-          <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
+          <main className="max-w-6xl mx-auto px-4 py-8">{children}</main>
         </Providers>
       </body>
     </html>
