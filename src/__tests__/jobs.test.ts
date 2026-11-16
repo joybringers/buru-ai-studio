@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ── Hoist shared mocks so vi.mock factories can reference them ────────────────
-const { mockPrismaJob, mockPrismaAsset, mockTransaction } = vi.hoisted(() => ({
+const { mockPrismaJob, mockPrismaAsset, mockPrismaUser, mockTransaction } = vi.hoisted(() => ({
   mockPrismaJob: { findFirst: vi.fn(), update: vi.fn() },
   mockPrismaAsset: { create: vi.fn() },
+  mockPrismaUser: { findUnique: vi.fn() },
   mockTransaction: vi.fn(),
 }));
 
@@ -14,9 +15,12 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     job: mockPrismaJob,
     asset: mockPrismaAsset,
+    user: mockPrismaUser,
     $transaction: mockTransaction,
   },
 }));
+
+vi.mock("@/lib/email", () => ({ sendGenerationComplete: vi.fn().mockResolvedValue(undefined) }));
 
 vi.mock("@/lib/providers/index", () => ({ pollJob: vi.fn() }));
 

@@ -4,6 +4,8 @@ import { auth } from "@/auth";
 export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { pollJob } from "@/lib/providers/index";
+import { MODELS } from "@/config";
+import { sendGenerationComplete } from "@/lib/email";
 
 export async function GET(
   _req: Request,
@@ -50,6 +52,20 @@ export async function GET(
         data: { userId, jobId: job.id, url, mimeType },
       }),
     ]);
+
+    // Fire-and-forget email — don't block the response.
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+    if (user?.email) {
+      const model = MODELS.find((m) => m.id === job.modelId);
+      sendGenerationComplete({
+        to: user.email,
+        resultUrl: url,
+        prompt: job.prompt,
+        modelName: model?.name ?? job.modelId,
+        isVideo: model?.type === "video",
+      }).catch(() => {}); // swallow email errors
+    }
+
     return NextResponse.json({ status: "done", resultUrl: url });
   }
 

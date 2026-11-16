@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import {
   IMAGE_MODELS,
@@ -38,6 +39,29 @@ function TopUpHandler({
   return null;
 }
 
+function ReferralHandler({ onMessage }: { onMessage: (msg: string | null) => void }) {
+  useEffect(() => {
+    const ref = localStorage.getItem("buru_ref");
+    if (!ref) return;
+    fetch("/api/referral/claim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ referrerId: ref }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        localStorage.removeItem("buru_ref");
+        if (data.ok) {
+          onMessage(`You earned ${data.credits} bonus credits from a referral!`);
+          setTimeout(() => onMessage(null), 5000);
+        }
+      })
+      .catch(() => localStorage.removeItem("buru_ref"));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
+
 type Phase = "idle" | "generating" | "done" | "error";
 
 const POLL_INTERVAL_MS = 2500;
@@ -47,14 +71,29 @@ function sleep(ms: number) {
   return new Promise<void>((r) => setTimeout(r, ms));
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://buruai.elmorilx.com";
+
 export default function StudioPage() {
   const { balance, refreshBalance } = useUser();
+  const { data: session } = useSession();
   const [phase, setPhase] = useState<Phase>("idle");
   const [prompt, setPrompt] = useState("");
   const [modelId, setModelId] = useState("flux-schnell");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [topUpMsg, setTopUpMsg] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const referralLink = session?.user?.id
+    ? `${APP_URL}/?ref=${session.user.id}`
+    : null;
+
+  function copyReferral() {
+    if (!referralLink) return;
+    navigator.clipboard.writeText(referralLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   const selectedModel = MODELS.find((m) => m.id === modelId) ?? IMAGE_MODELS[0];
   const isVideoModel = selectedModel.type === "video";
@@ -133,6 +172,7 @@ export default function StudioPage() {
       <Suspense fallback={null}>
         <TopUpHandler refreshBalance={refreshBalance} onMessage={setTopUpMsg} />
       </Suspense>
+      <ReferralHandler onMessage={setTopUpMsg} />
       {topUpMsg && (
         <div className="bg-green-500/10 border border-green-500/30 text-green-400 text-sm px-4 py-3 rounded-xl">
           {topUpMsg}
@@ -242,6 +282,30 @@ export default function StudioPage() {
             </button>
           </section>
 
+          {/* Share & earn */}
+          {referralLink && (
+            <section className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-5 space-y-3">
+              <div>
+                <h2 className="text-sm font-medium text-zinc-200">Share &amp; earn</h2>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  Give a friend 20 free credits — you get 20 too when they sign up.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={referralLink}
+                  className="flex-1 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-400 text-xs px-3 py-2 truncate focus:outline-none"
+                />
+                <button
+                  onClick={copyReferral}
+                  className="shrink-0 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium transition-colors"
+                >
+                  {copied ? "Copied!" : "Copy"}
+                </button>
+              </div>
+            </section>
+          )}
         </>
       )}
 

@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { CREDIT_PACKS, IMAGE_MODELS, creditsToGBP } from "@/config";
+import RefCapture from "@/components/RefCapture";
 
 export default function Home() {
   return (
     <div className="space-y-24 pb-24">
+      <Suspense fallback={null}><RefCapture /></Suspense>
 
       {/* ── Hero ── */}
       <section className="pt-16 pb-8 text-center space-y-6">
