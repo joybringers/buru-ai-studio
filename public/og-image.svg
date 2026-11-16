@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#09090b"/>
+  <rect x="0" y="0" width="1200" height="630" fill="url(#grad)"/>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#09090b"/>
+      <stop offset="100%" style="stop-color:#1e1b4b"/>
+    </linearGradient>
+  </defs>
+  <!-- Logo mark -->
+  <rect x="80" y="80" width="64" height="64" rx="16" fill="#4f46e5"/>
+  <text x="112" y="126" font-family="system-ui,sans-serif" font-size="44" font-weight="700" text-anchor="middle" fill="white">B</text>
+  <!-- Headline -->
+  <text x="80" y="320" font-family="system-ui,sans-serif" font-size="72" font-weight="700" fill="white">Create stunning</text>
+  <text x="80" y="410" font-family="system-ui,sans-serif" font-size="72" font-weight="700" fill="#818cf8">visuals in seconds</text>
+  <!-- Sub -->
+  <text x="80" y="490" font-family="system-ui,sans-serif" font-size="28" fill="#a1a1aa">AI image &amp; video studio · Pay per generation</text>
+  <!-- URL -->
+  <text x="80" y="560" font-family="system-ui,sans-serif" font-size="22" fill="#52525b">buruai.elmorilx.com</text>
+</svg>
