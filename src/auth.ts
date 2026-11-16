@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Nodemailer from "next-auth/providers/nodemailer";
+import Google from "next-auth/providers/google";
 import { createTransport } from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "./auth.config";
@@ -31,6 +32,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+    }),
     Nodemailer({
       server: process.env.EMAIL_SERVER ?? "",
       from: process.env.EMAIL_FROM ?? "BuruStudio <noreply@burustudio.com>",
