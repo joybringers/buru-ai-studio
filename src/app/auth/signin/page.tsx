@@ -90,7 +90,7 @@ export default function SignInPage() {
               <p className="text-sm font-semibold text-indigo-300 mt-0.5 break-all">{sentTo}</p>
             </div>
             <p className="text-xs text-zinc-600 leading-relaxed">
-              The link expires in 24 hours. Check your spam folder if you don't see it.
+              The link expires in 24 hours. Check your spam folder if you don&apos;t see it.
             </p>
             <button
               onClick={() => { setSent(false); setEmail(""); }}

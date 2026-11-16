@@ -42,7 +42,7 @@ export default function PrivacyPage() {
           We share limited data with:
           <ul className="list-disc pl-5 space-y-1.5 mt-2">
             <li><strong className="text-zinc-300">fal.ai</strong> — your prompts are sent to fal.ai to generate content. Their <a href="https://fal.ai/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 underline">privacy policy</a> applies.</li>
-            <li><strong className="text-zinc-300">Anthropic</strong> — prompts sent to Chat Mode are processed by Anthropic's Claude API. Their <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 underline">privacy policy</a> applies.</li>
+            <li><strong className="text-zinc-300">Anthropic</strong> — prompts sent to Chat Mode are processed by Anthropic&apos;s Claude API. Their <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 underline">privacy policy</a> applies.</li>
             <li><strong className="text-zinc-300">Stripe</strong> — payment processing. Your card data never touches our servers.</li>
             <li><strong className="text-zinc-300">Resend</strong> — transactional email delivery.</li>
           </ul>
