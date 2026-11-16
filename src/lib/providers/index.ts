@@ -3,13 +3,16 @@ import type { GenerateStatus } from "./types";
 
 export type { GenerateResult, GenerateStatus } from "./types";
 
+export type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
+
 /** Submit a generation job. Returns the provider job ID. */
 export async function submitJob(
   prompt: string,
-  modelId: string
+  modelId: string,
+  aspectRatio: AspectRatio = "1:1"
 ): Promise<string> {
   if (falProvider.supportedModelIds.includes(modelId)) {
-    return falProvider.submit(prompt, modelId);
+    return falProvider.submit(prompt, modelId, aspectRatio);
   }
   throw new Error(`Unknown model: ${modelId}`);
 }

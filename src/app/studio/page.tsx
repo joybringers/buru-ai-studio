@@ -10,6 +10,24 @@ import {
   creditsToGBP,
   Model,
 } from "@/config";
+
+type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
+
+const ASPECT_RATIOS: { id: AspectRatio; label: string; w: number; h: number }[] = [
+  { id: "1:1",  label: "1:1",  w: 1,  h: 1  },
+  { id: "16:9", label: "16:9", w: 16, h: 9  },
+  { id: "9:16", label: "9:16", w: 9,  h: 16 },
+  { id: "4:3",  label: "4:3",  w: 4,  h: 3  },
+  { id: "3:4",  label: "3:4",  w: 3,  h: 4  },
+];
+
+interface HistoryItem {
+  id: string;
+  url: string;
+  mimeType: string;
+  createdAt: string;
+  job: { prompt: string; modelId: string };
+}
 import { BLOCKED_TERMS } from "@/data/fake";
 import { PROMPT_SUGGESTIONS } from "@/data/prompt-suggestions";
 import { useUser } from "@/context/UserContext";
@@ -85,7 +103,10 @@ export default function StudioPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [topUpMsg, setTopUpMsg] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [elapsed, setElapsed] = useState(0);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [previewItem, setPreviewItem] = useState<HistoryItem | null>(null);
   const [suggestions, setSuggestions] = useState(() =>
     [...PROMPT_SUGGESTIONS].sort(() => Math.random() - 0.5).slice(0, 4)
   );
@@ -124,6 +145,14 @@ export default function StudioPage() {
     return () => clearInterval(id);
   }, [phase]);
 
+  // Load generation history
+  useEffect(() => {
+    fetch("/api/studio/history")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setHistory(data); })
+      .catch(() => {});
+  }, [phase]); // refresh after each generation attempt
+
   async function handleGenerate() {
     setPhase("generating");
     setErrorMsg(null);
@@ -134,7 +163,11 @@ export default function StudioPage() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: prompt.trim(), modelId }),
+        body: JSON.stringify({
+          prompt: prompt.trim(),
+          modelId,
+          ...(isVideoModel ? {} : { aspectRatio }),
+        }),
       });
       const body = await res.json();
       if (!res.ok) {
@@ -249,6 +282,37 @@ export default function StudioPage() {
             )}
           </div>
 
+          {/* Aspect ratio (image only) */}
+          {!isVideoModel && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Aspect ratio</p>
+              <div className="flex gap-1.5 flex-wrap">
+                {ASPECT_RATIOS.map((ar) => (
+                  <button
+                    key={ar.id}
+                    onClick={() => setAspectRatio(ar.id)}
+                    disabled={phase === "generating"}
+                    className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg border text-xs transition-all disabled:opacity-50 ${
+                      aspectRatio === ar.id
+                        ? "border-indigo-500 bg-indigo-950/30 text-indigo-300"
+                        : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+                    }`}
+                  >
+                    <span
+                      className={`border rounded-sm ${aspectRatio === ar.id ? "border-indigo-400" : "border-zinc-600"}`}
+                      style={{
+                        width: `${Math.round(14 * ar.w / Math.max(ar.w, ar.h))}px`,
+                        height: `${Math.round(14 * ar.h / Math.max(ar.w, ar.h))}px`,
+                        display: "inline-block",
+                      }}
+                    />
+                    {ar.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Model selector */}
           <div className="space-y-2">
             <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Image</p>
@@ -338,8 +402,30 @@ export default function StudioPage() {
 
         {/* ── RIGHT: canvas ── */}
         <div className="flex-1 min-h-[400px] lg:min-h-0">
+          {/* History preview (clicked thumbnail) */}
+          {phase === "idle" && previewItem && (
+            <div className="h-full min-h-[400px] rounded-2xl overflow-hidden relative bg-zinc-900 border border-zinc-800 group">
+              {previewItem.mimeType.startsWith("video") ? (
+                <video src={previewItem.url} controls autoPlay loop className="w-full h-full object-contain" />
+              ) : (
+                <Image src={previewItem.url} alt={previewItem.job.prompt} fill className="object-contain" unoptimized />
+              )}
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4 translate-y-full group-hover:translate-y-0 transition-transform">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs text-zinc-400 truncate">{previewItem.job.prompt}</p>
+                  <div className="flex gap-2 shrink-0">
+                    <a href={previewItem.url} download target="_blank" rel="noopener noreferrer"
+                      className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg">Download</a>
+                    <button onClick={() => setPreviewItem(null)}
+                      className="text-xs bg-zinc-700 hover:bg-zinc-600 text-zinc-200 px-3 py-1.5 rounded-lg">✕ Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Idle */}
-          {phase === "idle" && !resultUrl && (
+          {phase === "idle" && !resultUrl && !previewItem && (
             <div className="h-full min-h-[400px] rounded-2xl border border-zinc-800 bg-zinc-900/30 flex flex-col items-center justify-center gap-4 p-8">
               {errorMsg ? (
                 <div className="text-center space-y-2">
@@ -453,6 +539,35 @@ export default function StudioPage() {
           )}
         </div>
       </div>
+
+      {/* ── History strip ── */}
+      {history.length > 0 && (
+        <div className="space-y-3 pt-2 border-t border-zinc-800/60">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-zinc-600 uppercase tracking-widest">Recent generations</p>
+            <a href="/gallery" className="text-xs text-zinc-600 hover:text-indigo-400 transition-colors">View all →</a>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {history.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => { setPreviewItem(item); setPhase("idle"); setResultUrl(null); setErrorMsg(null); }}
+                className="shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-zinc-800 hover:border-indigo-500/60 transition-all relative group"
+                title={item.job.prompt}
+              >
+                {item.mimeType.startsWith("video") ? (
+                  <video src={item.url} muted className="w-full h-full object-cover" />
+                ) : (
+                  <Image src={item.url} alt={item.job.prompt} fill className="object-cover" unoptimized />
+                )}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="text-white text-xs">View</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

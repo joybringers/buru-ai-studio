@@ -34,14 +34,44 @@ function pickResult(modelId: string, data: Record<string, unknown>): { url: stri
   return { url: img.url, mimeType: img.content_type ?? "image/jpeg" };
 }
 
+type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
+
+const FLUX_SIZE_MAP: Record<AspectRatio, string> = {
+  "1:1":  "square_hd",
+  "16:9": "landscape_16_9",
+  "9:16": "portrait_16_9",
+  "4:3":  "landscape_4_3",
+  "3:4":  "portrait_4_3",
+};
+
+const IDEOGRAM_RATIO_MAP: Record<AspectRatio, string> = {
+  "1:1":  "ASPECT_1_1",
+  "16:9": "ASPECT_16_9",
+  "9:16": "ASPECT_9_16",
+  "4:3":  "ASPECT_4_3",
+  "3:4":  "ASPECT_3_4",
+};
+
+function buildInput(prompt: string, modelId: string, aspectRatio: AspectRatio) {
+  if (FAL_VIDEO_MAP[modelId]) return { prompt };
+  if (modelId === "nano-banana-pro") {
+    return { prompt, aspect_ratio: IDEOGRAM_RATIO_MAP[aspectRatio] ?? "ASPECT_1_1" };
+  }
+  return { prompt, num_images: 1, image_size: FLUX_SIZE_MAP[aspectRatio] ?? "square_hd" };
+}
+
 /** Submit a generation job to fal.ai queue. Returns the provider request ID. */
-export async function submit(prompt: string, modelId: string): Promise<string> {
+export async function submit(
+  prompt: string,
+  modelId: string,
+  aspectRatio: AspectRatio = "1:1"
+): Promise<string> {
   if (!process.env.FAL_KEY) throw new Error("FAL_KEY env var is not set");
 
   const endpoint = falEndpoint(modelId);
-  const isVideo = !!FAL_VIDEO_MAP[modelId];
-  const input = isVideo ? { prompt } : { prompt, num_images: 1 };
-  const { request_id } = await fal.queue.submit(endpoint, { input });
+  const { request_id } = await fal.queue.submit(endpoint, {
+    input: buildInput(prompt, modelId, aspectRatio),
+  });
   return request_id;
 }
 

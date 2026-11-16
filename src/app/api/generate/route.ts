@@ -4,8 +4,10 @@ import { auth } from "@/auth";
 export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { debitUser, creditUser, InsufficientBalanceError } from "@/lib/ledger";
-import { submitJob } from "@/lib/providers/index";
+import { submitJob, AspectRatio } from "@/lib/providers/index";
 import { MODELS } from "@/config";
+
+const VALID_RATIOS: AspectRatio[] = ["1:1", "16:9", "9:16", "4:3", "3:4"];
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -21,7 +23,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { prompt, modelId } = body as { prompt?: unknown; modelId?: unknown };
+  const { prompt, modelId, aspectRatio: rawRatio } = body as {
+    prompt?: unknown; modelId?: unknown; aspectRatio?: unknown;
+  };
+  const aspectRatio: AspectRatio =
+    typeof rawRatio === "string" && VALID_RATIOS.includes(rawRatio as AspectRatio)
+      ? (rawRatio as AspectRatio)
+      : "1:1";
 
   if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
     return NextResponse.json({ error: "prompt is required" }, { status: 400 });
@@ -62,7 +70,7 @@ export async function POST(req: Request) {
 
   // Submit to the provider; refund on failure.
   try {
-    const providerJobId = await submitJob(prompt.trim(), modelId);
+    const providerJobId = await submitJob(prompt.trim(), modelId, aspectRatio);
     await prisma.job.update({
       where: { id: job.id },
       data: { providerJobId, status: "running" },
