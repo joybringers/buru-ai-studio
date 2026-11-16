@@ -22,8 +22,12 @@ const FAL_I2V_MAP: Record<string, string> = {
   "minimax-i2v":  "fal-ai/minimax/video-01-live",
 };
 
+const FAL_AUDIO_MAP: Record<string, string> = {
+  "stable-audio": "fal-ai/stable-audio",
+};
+
 const FAL_VIDEO_MAP: Record<string, string> = { ...FAL_T2V_MAP, ...FAL_I2V_MAP };
-const FAL_MODEL_MAP: Record<string, string> = { ...FAL_IMAGE_MAP, ...FAL_VIDEO_MAP };
+const FAL_MODEL_MAP: Record<string, string> = { ...FAL_IMAGE_MAP, ...FAL_VIDEO_MAP, ...FAL_AUDIO_MAP };
 
 function falEndpoint(modelId: string): string {
   const endpoint = FAL_MODEL_MAP[modelId];
@@ -36,6 +40,11 @@ function pickResult(modelId: string, data: Record<string, unknown>): { url: stri
     const video = data.video as { url?: string } | undefined;
     if (!video?.url) throw new Error("fal.ai response contained no video URL");
     return { url: video.url, mimeType: "video/mp4" };
+  }
+  if (FAL_AUDIO_MAP[modelId]) {
+    const audio = data.audio_file as { url?: string } | undefined;
+    if (!audio?.url) throw new Error("fal.ai response contained no audio URL");
+    return { url: audio.url, mimeType: "audio/wav" };
   }
   const images = data.images as Array<{ url: string; content_type?: string }> | undefined;
   const img = images?.[0];
@@ -75,6 +84,11 @@ function buildInput(
     }
     // kling-i2v
     return { prompt, image_url: imageUrl, duration: "5" };
+  }
+
+  // Audio generation
+  if (FAL_AUDIO_MAP[modelId]) {
+    return { prompt, seconds_total: 30 };
   }
 
   // Text-to-video

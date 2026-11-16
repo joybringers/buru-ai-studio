@@ -6,6 +6,7 @@ import Image from "next/image";
 import {
   IMAGE_MODELS,
   VIDEO_MODELS,
+  AUDIO_MODELS,
   MODELS,
   creditsToGBP,
   Model,
@@ -141,6 +142,7 @@ export default function StudioPage() {
 
   const selectedModel = MODELS.find((m) => m.id === modelId) ?? IMAGE_MODELS[0];
   const isVideoModel = selectedModel.type === "video";
+  const isAudioModel = selectedModel.type === "audio";
   const isI2V = selectedModel.inputType === "image";
   const isT2V = isVideoModel && !isI2V;
 
@@ -239,7 +241,7 @@ export default function StudioPage() {
       return;
     }
 
-    const timeout = isVideoModel ? VIDEO_POLL_TIMEOUT_MS : IMAGE_POLL_TIMEOUT_MS;
+    const timeout = isVideoModel ? VIDEO_POLL_TIMEOUT_MS : IMAGE_POLL_TIMEOUT_MS; // audio uses image timeout
     const deadline = Date.now() + timeout;
     while (Date.now() < deadline) {
       await sleep(POLL_INTERVAL_MS);
@@ -311,7 +313,7 @@ export default function StudioPage() {
 
           <div>
             <h1 className="text-xl font-semibold text-zinc-100">Studio</h1>
-            <p className="text-xs text-zinc-500 mt-0.5">Generate images &amp; video</p>
+            <p className="text-xs text-zinc-500 mt-0.5">Generate images, video &amp; audio</p>
           </div>
 
           {/* Prompt */}
@@ -413,8 +415,8 @@ export default function StudioPage() {
             </div>
           )}
 
-          {/* Aspect ratio (image + T2V Kling only) */}
-          {!isI2V && (
+          {/* Aspect ratio (image + T2V Kling only, not audio) */}
+          {!isI2V && !isAudioModel && (
             <div className="space-y-2">
               <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
                 {isT2V ? "Aspect ratio" : "Aspect ratio"}
@@ -469,6 +471,17 @@ export default function StudioPage() {
             <p className="text-xs text-zinc-700">Upload any image · generates a 5-second animated clip · ~3–5 min</p>
           </div>
 
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Audio</p>
+            <div className="grid grid-cols-2 gap-2">
+              {AUDIO_MODELS.map((m) => (
+                <ModelCard key={m.id} model={m} selected={modelId === m.id}
+                  onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
+              ))}
+            </div>
+            <p className="text-xs text-zinc-700">Describe music or a sound effect · generates 30-second audio</p>
+          </div>
+
           {/* Generate */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-3">
             <div className="flex justify-between items-center">
@@ -492,7 +505,7 @@ export default function StudioPage() {
                   ? "bg-indigo-600 hover:bg-indigo-500 text-white"
                   : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
               }`}>
-              {isI2V ? "Animate image" : isVideoModel ? "Generate video" : "Generate image"} · {selectedModel.credits} cr
+              {isI2V ? "Animate image" : isVideoModel ? "Generate video" : isAudioModel ? "Generate audio" : "Generate image"} · {selectedModel.credits} cr
             </button>
             <div className="flex justify-between items-center text-xs text-zinc-600">
               <span>Balance: {balance} cr</span>
@@ -618,18 +631,41 @@ export default function StudioPage() {
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-sm font-medium text-zinc-300">
-                    {isI2V ? `Animating with ${selectedModel.name}` : `Generating on ${selectedModel.name}`}
+                    {isI2V ? `Animating with ${selectedModel.name}` : isAudioModel ? `Composing with ${selectedModel.name}` : `Generating on ${selectedModel.name}`}
                   </p>
                   <p className="text-xs text-zinc-600">
-                    {elapsed}s elapsed · {isVideoModel ? "~3–5 min for video" : "usually 5–30 s"}
+                    {elapsed}s elapsed · {isVideoModel ? "~3–5 min for video" : isAudioModel ? "usually 30–60 s" : "usually 5–30 s"}
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Done */}
-          {phase === "done" && resultUrl && (
+          {/* Done — audio */}
+          {phase === "done" && resultUrl && isAudioModel && (
+            <div className="h-full min-h-[400px] rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center gap-6 p-8">
+              <div className="w-20 h-20 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                <svg className="w-10 h-10 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z" />
+                </svg>
+              </div>
+              <div className="text-center space-y-1">
+                <p className="text-sm font-medium text-zinc-200">Your audio is ready</p>
+                <p className="text-xs text-zinc-600 max-w-xs">{prompt}</p>
+              </div>
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              <audio controls autoPlay className="w-full max-w-sm rounded-lg" src={resultUrl} />
+              <div className="flex gap-3">
+                <a href={resultUrl} download target="_blank" rel="noopener noreferrer"
+                  className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-2 rounded-lg transition-colors">Download</a>
+                <button onClick={handleStartOver}
+                  className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition-colors">Generate another</button>
+              </div>
+            </div>
+          )}
+
+          {/* Done — image / video */}
+          {phase === "done" && resultUrl && !isAudioModel && (
             <div className="h-full min-h-[400px] rounded-2xl overflow-hidden relative bg-zinc-900 border border-zinc-800 group">
               {selectedModel.type === "video" ? (
                 <video src={resultUrl} controls autoPlay loop className="w-full h-full object-contain" />
@@ -675,6 +711,12 @@ export default function StudioPage() {
                 title={item.job.prompt}>
                 {item.mimeType.startsWith("video") ? (
                   <video src={item.url} muted className="w-full h-full object-cover" />
+                ) : item.mimeType.startsWith("audio") ? (
+                  <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z" />
+                    </svg>
+                  </div>
                 ) : (
                   <Image src={item.url} alt={item.job.prompt} fill className="object-cover" unoptimized />
                 )}

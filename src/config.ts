@@ -7,7 +7,7 @@ export interface Model {
   id: string;
   name: string;
   provider: string;
-  type: "image" | "video";
+  type: "image" | "video" | "audio";
   /** Only set on image-to-video models — requires an uploaded image as input */
   inputType?: "image";
   credits: number;
@@ -81,10 +81,19 @@ export const MODELS: Model[] = [
     credits: 50,
     description: "Smooth image animation",
   },
+  {
+    id: "stable-audio",
+    name: "Stable Audio",
+    provider: "fal.ai",
+    type: "audio",
+    credits: 20,
+    description: "30-sec AI music & sounds",
+  },
 ];
 
 export const IMAGE_MODELS = MODELS.filter((m) => m.type === "image");
 export const VIDEO_MODELS = MODELS.filter((m) => m.type === "video");
+export const AUDIO_MODELS = MODELS.filter((m) => m.type === "audio");
 
 export const DRAFT_MODEL_ID = "flux-schnell";
 export const DRAFT_COUNT = 4;
