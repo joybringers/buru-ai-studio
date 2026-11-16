@@ -27,14 +27,18 @@ export async function sendGenerationComplete({
     to,
     from: FROM,
     subject: `Your ${type} is ready — BuruStudio`,
-    text: `Your ${type} has been generated!\n\nPrompt: ${prompt}\nModel: ${modelName}\n\nView it in your gallery: ${APP_URL}/gallery`,
+    text: `Your ${type} has been generated!\n\nPrompt: ${prompt}\nModel: ${modelName}\n\nView it here: ${resultUrl}\n\nOr browse your gallery: ${APP_URL}/gallery`,
     html: `
       <div style="font-family:sans-serif;max-width:460px;margin:40px auto;padding:32px;background:#09090b;border-radius:12px;border:1px solid #27272a;color:#fafafa">
         <h1 style="font-size:18px;font-weight:600;margin:0 0 6px">Your ${type} is ready ✨</h1>
         <p style="color:#a1a1aa;font-size:13px;margin:0 0 20px">${prompt}</p>
-        <a href="${APP_URL}/gallery"
+        <a href="${resultUrl}"
           style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:500">
-          View in Gallery
+          View ${type}
+        </a>
+        <a href="${APP_URL}/gallery"
+          style="display:inline-block;margin-left:12px;color:#a1a1aa;text-decoration:none;padding:10px 16px;border-radius:8px;font-size:14px;border:1px solid #27272a">
+          Gallery
         </a>
         <p style="color:#52525b;font-size:11px;margin:24px 0 0">Generated with ${modelName} on BuruStudio</p>
       </div>

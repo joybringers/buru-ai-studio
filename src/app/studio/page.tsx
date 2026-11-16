@@ -11,6 +11,7 @@ import {
   Model,
 } from "@/config";
 import { BLOCKED_TERMS } from "@/data/fake";
+import { PROMPT_SUGGESTIONS } from "@/data/prompt-suggestions";
 import { useUser } from "@/context/UserContext";
 
 function TopUpHandler({
@@ -83,10 +84,17 @@ export default function StudioPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [topUpMsg, setTopUpMsg] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [suggestions, setSuggestions] = useState(() =>
+    [...PROMPT_SUGGESTIONS].sort(() => Math.random() - 0.5).slice(0, 4)
+  );
 
   const referralLink = session?.user?.id
     ? `${APP_URL}/?ref=${session.user.id}`
     : null;
+
+  function shuffleSuggestions() {
+    setSuggestions([...PROMPT_SUGGESTIONS].sort(() => Math.random() - 0.5).slice(0, 4));
+  }
 
   function copyReferral() {
     if (!referralLink) return;
@@ -197,6 +205,31 @@ export default function StudioPage() {
               rows={4}
               className="w-full rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 p-4 text-sm resize-none focus:outline-none focus:border-indigo-500 transition-colors"
             />
+            {/* Prompt suggestions */}
+            {!prompt && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-600">Try a prompt</span>
+                  <button
+                    onClick={shuffleSuggestions}
+                    className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+                  >
+                    ↻ More
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setPrompt(s)}
+                      className="text-xs bg-zinc-900 border border-zinc-800 hover:border-zinc-600 text-zinc-400 hover:text-zinc-200 px-3 py-1.5 rounded-lg transition-colors text-left"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {blockedTerm && (
               <div className="rounded-lg bg-red-950/60 border border-red-800 px-4 py-3 text-sm text-red-300">
                 <span className="font-medium">Prompt blocked.</span> This tool
