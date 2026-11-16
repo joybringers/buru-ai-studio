@@ -27,32 +27,32 @@ const TOOLS = [
     category: "FOR BUSINESS",
     accent: "bg-indigo-500",
     items: [
-      { title: "Product Ads",    desc: "AI-generated product videos and images that sell",          badge: null },
-      { title: "Brand Images",   desc: "Consistent visual identity at scale — no designer needed", badge: null },
-      { title: "Social Content", desc: "Scroll-stopping visuals for Instagram, TikTok, LinkedIn",  badge: null },
-      { title: "Film Trailer",   desc: "Cinematic brand stories in seconds",                        badge: null },
-      { title: "UGC Ads",        desc: "Authentic creator-style ads that convert",                  badge: null },
-      { title: "Branding Ads",   desc: "On-brand video ads at scale",                              badge: null },
+      { title: "Product Ads",    desc: "AI-generated product videos and images that sell",          href: "/create/product-ad",   badge: null },
+      { title: "Brand Images",   desc: "Consistent visual identity at scale — no designer needed", href: "/create/brand-image",  badge: null },
+      { title: "Social Content", desc: "Scroll-stopping visuals for Instagram, TikTok, LinkedIn",  href: "/create/social-reel",  badge: null },
+      { title: "Film Trailer",   desc: "Cinematic brand stories in seconds",                        href: "/create/brand-film",   badge: null },
+      { title: "UGC Ads",        desc: "Authentic creator-style ads that convert",                  href: "/create/ugc-ad",       badge: null },
+      { title: "Branding Ads",   desc: "On-brand video ads at scale",                              href: "/create/product-ad",   badge: null },
     ],
   },
   {
     category: "VIDEO",
     accent: "bg-violet-500",
     items: [
-      { title: "Text to Video",   desc: "Turn your words into cinematic AI clips",             badge: null },
-      { title: "Animate Images",  desc: "Bring any photo or illustration to life",             badge: "NEW" },
-      { title: "Music Video",     desc: "Sync AI visuals to any audio track",                  badge: "SOON" },
-      { title: "Motion Control",  desc: "Direct precise camera movement in your video",        badge: "SOON" },
+      { title: "Text to Video",   desc: "Turn your words into cinematic AI clips",             href: "/create/text-to-video", badge: null },
+      { title: "Animate Images",  desc: "Bring any photo or illustration to life",             href: "/studio",               badge: "NEW" },
+      { title: "Music Video",     desc: "Sync AI visuals to any audio track",                  href: "/studio",               badge: "SOON" },
+      { title: "Motion Control",  desc: "Direct precise camera movement in your video",        href: "/studio",               badge: "SOON" },
     ],
   },
   {
     category: "IMAGE",
     accent: "bg-rose-500",
     items: [
-      { title: "Image Generator", desc: "Generate stunning images from text prompts",             badge: null },
-      { title: "Product Shots",   desc: "Studio-quality product photography without a studio",   badge: null },
-      { title: "Poster Design",   desc: "Bold typographic and graphic posters",                   badge: null },
-      { title: "Image Upscale",   desc: "Enhance resolution and add fine detail with AI",         badge: "SOON" },
+      { title: "Image Generator", desc: "Generate stunning images from text prompts",             href: "/create/image",        badge: null },
+      { title: "Product Shots",   desc: "Studio-quality product photography without a studio",   href: "/create/product-shot", badge: null },
+      { title: "Poster Design",   desc: "Bold typographic and graphic posters",                   href: "/create/poster",       badge: null },
+      { title: "Image Upscale",   desc: "Enhance resolution and add fine detail with AI",         href: "/studio",              badge: "SOON" },
     ],
   },
 ];
@@ -207,7 +207,7 @@ export default function Home() {
                 {items.map((tool) => (
                   <Link
                     key={tool.title}
-                    href="/studio"
+                    href={tool.href}
                     className={`group relative bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-2xl p-5 transition-all hover:bg-zinc-900/80 ${
                       tool.badge === "SOON" ? "opacity-50 pointer-events-none" : ""
                     }`}

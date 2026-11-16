@@ -58,6 +58,28 @@ function TopUpHandler({
   return null;
 }
 
+function DirectorParamHandler({
+  setPrompt, setModelId, setAspectRatio,
+}: {
+  setPrompt: (p: string) => void;
+  setModelId: (m: string) => void;
+  setAspectRatio: (r: AspectRatio) => void;
+}) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  useEffect(() => {
+    const p = searchParams.get("prompt");
+    const m = searchParams.get("model");
+    const r = searchParams.get("ratio");
+    if (p) setPrompt(decodeURIComponent(p));
+    if (m) setModelId(m);
+    if (r && ASPECT_RATIOS.some((ar) => ar.id === r)) setAspectRatio(r as AspectRatio);
+    if (p || m || r) router.replace("/studio");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
+
 function ReferralHandler({ onMessage }: { onMessage: (msg: string | null) => void }) {
   useEffect(() => {
     const ref = localStorage.getItem("buru_ref");
@@ -265,6 +287,13 @@ export default function StudioPage() {
     <div className="min-h-[calc(100vh-4rem)] flex flex-col gap-6">
       <Suspense fallback={null}>
         <TopUpHandler refreshBalance={refreshBalance} onMessage={setTopUpMsg} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <DirectorParamHandler
+          setPrompt={setPrompt}
+          setModelId={setModelId}
+          setAspectRatio={setAspectRatio}
+        />
       </Suspense>
       <ReferralHandler onMessage={setTopUpMsg} />
 
