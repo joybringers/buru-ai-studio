@@ -11,7 +11,7 @@ const FAL_IMAGE_MAP: Record<string, string> = {
 };
 
 const FAL_VIDEO_MAP: Record<string, string> = {
-  "minimax-video": "fal-ai/minimax/video-01-live",
+  "minimax-video": "fal-ai/minimax/video-01",
 };
 
 const FAL_MODEL_MAP: Record<string, string> = { ...FAL_IMAGE_MAP, ...FAL_VIDEO_MAP };
