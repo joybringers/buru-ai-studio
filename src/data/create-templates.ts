@@ -1,4 +1,5 @@
 export type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
+export type TemplateCategory = "all" | "video" | "image" | "audio" | "marketing" | "social";
 
 export interface FormTextField {
   id: string;
@@ -29,6 +30,9 @@ export interface CreateTemplate {
   defaultModel: string;
   defaultRatio: AspectRatio;
   tileGradient: string;
+  categories: TemplateCategory[];
+  /** Optional CDN URL for a real preview video. Falls back to animated gradient. */
+  exampleVideo?: string;
   buildPrompt: (answers: Record<string, string>) => string;
 }
 
@@ -40,6 +44,7 @@ export const TEMPLATES: CreateTemplate[] = [
     subtitle: "Cinematic brand stories in seconds",
     ctaLabel: "Direct my brand film",
     tileGradient: "linear-gradient(145deg,#1e1b4b 0%,#3730a3 100%)",
+    categories: ["video", "marketing"],
     defaultModel: "kling-t2v",
     defaultRatio: "16:9",
     fields: [
@@ -93,6 +98,7 @@ export const TEMPLATES: CreateTemplate[] = [
     subtitle: "AI-generated ads that drive sales",
     ctaLabel: "Generate my product ad",
     tileGradient: "linear-gradient(145deg,#450a0a 0%,#991b1b 100%)",
+    categories: ["image", "marketing"],
     defaultModel: "flux-pro",
     defaultRatio: "1:1",
     fields: [
@@ -141,6 +147,7 @@ export const TEMPLATES: CreateTemplate[] = [
     subtitle: "Scroll-stopping content for every platform",
     ctaLabel: "Generate my reel",
     tileGradient: "linear-gradient(145deg,#082f49 0%,#0369a1 100%)",
+    categories: ["video", "social"],
     defaultModel: "kling-t2v",
     defaultRatio: "9:16",
     fields: [
@@ -193,6 +200,7 @@ export const TEMPLATES: CreateTemplate[] = [
     subtitle: "Authentic creator-style ads that convert",
     ctaLabel: "Generate my UGC ad",
     tileGradient: "linear-gradient(145deg,#431407 0%,#c2410c 100%)",
+    categories: ["video", "marketing", "social"],
     defaultModel: "kling-t2v",
     defaultRatio: "9:16",
     fields: [
@@ -241,6 +249,7 @@ export const TEMPLATES: CreateTemplate[] = [
     subtitle: "Turn words into cinematic AI clips",
     ctaLabel: "Generate my video",
     tileGradient: "linear-gradient(145deg,#2e1065 0%,#7c3aed 100%)",
+    categories: ["video"],
     defaultModel: "minimax-video",
     defaultRatio: "16:9",
     fields: [
@@ -280,6 +289,7 @@ export const TEMPLATES: CreateTemplate[] = [
     subtitle: "Any image, from any idea",
     ctaLabel: "Generate my image",
     tileGradient: "linear-gradient(145deg,#042f2e 0%,#0d9488 100%)",
+    categories: ["image"],
     defaultModel: "flux-dev",
     defaultRatio: "1:1",
     fields: [
@@ -319,6 +329,7 @@ export const TEMPLATES: CreateTemplate[] = [
     subtitle: "Studio-quality photography — no studio needed",
     ctaLabel: "Generate product shot",
     tileGradient: "linear-gradient(145deg,#0f172a 0%,#334155 100%)",
+    categories: ["image", "marketing"],
     defaultModel: "flux-pro",
     defaultRatio: "1:1",
     fields: [
@@ -371,6 +382,7 @@ export const TEMPLATES: CreateTemplate[] = [
     subtitle: "Bold typographic and graphic posters",
     ctaLabel: "Generate my poster",
     tileGradient: "linear-gradient(145deg,#1a0533 0%,#7e22ce 100%)",
+    categories: ["image", "social"],
     defaultModel: "nano-banana-pro",
     defaultRatio: "9:16",
     fields: [
@@ -419,6 +431,7 @@ export const TEMPLATES: CreateTemplate[] = [
     subtitle: "Consistent visual identity at scale",
     ctaLabel: "Generate brand image",
     tileGradient: "linear-gradient(145deg,#172554 0%,#1d4ed8 100%)",
+    categories: ["image", "marketing"],
     defaultModel: "flux-pro",
     defaultRatio: "16:9",
     fields: [
