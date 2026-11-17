@@ -140,8 +140,22 @@ model Project {
   user   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   quote  FilmQuote?
   script Script?
+  bible  StoryBible?
   jobs   Job[]
   ledger CreditLedgerEntry[]
+}
+
+model StoryBible {
+  id         String   @id @default(cuid())
+  projectId  String   @unique
+  characters Json     @default("[]") // Character[]
+  locations  Json     @default("[]") // Location[]
+  props      Json     @default("[]") // Prop[]
+  styleNotes String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 // Append-only once accepted — never edited after acceptedAt is set

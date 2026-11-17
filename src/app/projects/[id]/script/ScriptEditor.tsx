@@ -187,6 +187,14 @@ export default function ScriptEditor({ initialData }: Props) {
           </div>
           <span className={`text-xs font-mono ${over ? "text-red-400" : "text-[#A8B0D8]"}`}>{pct}%</span>
           {saving && <span className="text-xs text-[#6A4CFF]">Saving…</span>}
+          {scenes.length > 0 && (
+            <a
+              href={`/projects/${initialData.id}/bible`}
+              className="text-xs bg-[#2BE4FF]/10 hover:bg-[#2BE4FF]/20 text-[#2BE4FF] px-3 py-1 rounded-lg transition-colors whitespace-nowrap"
+            >
+              📖 Story Bible →
+            </a>
+          )}
         </div>
 
         {scenes.length === 0 ? (
