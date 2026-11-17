@@ -194,6 +194,24 @@ function SunIcon() {
   );
 }
 
+function FilmIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
+      <rect x="1" y="3" width="14" height="10" rx="1.5"/>
+      <path strokeLinecap="round" d="M1 6h14M1 10h14M4 3v3M4 10v3M8 3v3M8 10v3M12 3v3M12 10v3"/>
+    </svg>
+  );
+}
+
+function SettingsIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
+      <circle cx="8" cy="8" r="2.5"/>
+      <path strokeLinecap="round" d="M8 1.5v1.5M8 13v1.5M1.5 8H3m10 0h1.5M3.11 3.11l1.06 1.06M11.83 11.83l1.06 1.06M3.11 12.89l1.06-1.06M11.83 4.17l1.06-1.06"/>
+    </svg>
+  );
+}
+
 function AdminIcon() {
   return (
     <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
@@ -258,6 +276,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             <NavLink href="/tools/faceswap" label="Face Swap" icon={<FaceIcon />} badge="HOT" onNavigate={onNavigate} />
             <NavLink href="/tools/voiceover" label="Voice Over" icon={<VoiceIcon />} badge="NEW" onNavigate={onNavigate} />
             <NavLink href="/tools/relight" label="Relight" icon={<SunIcon />} badge="NEW" onNavigate={onNavigate} />
+            <NavLink href="/tools/video-edit" label="Edit Video" icon={<FilmIcon />} badge="NEW" onNavigate={onNavigate} />
           </div>
 
           <div className="space-y-0.5">
@@ -269,6 +288,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           {session?.user && (
             <div className="space-y-0.5">
               <SectionLabel label="Account" />
+              <NavLink href="/settings" label="Settings" icon={<SettingsIcon />} onNavigate={onNavigate} />
               <NavLink href="/admin" label="Admin" icon={<AdminIcon />} onNavigate={onNavigate} />
               <NavLink href="/#pricing" label="Pricing" icon={<PricingIcon />} onNavigate={onNavigate} />
             </div>

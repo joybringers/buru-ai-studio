@@ -35,8 +35,9 @@ const FAL_TOOL_MAP: Record<string, string> = {
   "tool-img-edit":   "fal-ai/flux/dev/image-to-image",
   "tool-lipsync":    "fal-ai/sadtalker",
   "tool-faceswap":   "fal-ai/faceswap",
-  "tool-voiceover":  "fal-ai/kokoro",
-  "tool-relight":    "fal-ai/ic-light",
+  "tool-voiceover":   "fal-ai/kokoro",
+  "tool-relight":     "fal-ai/ic-light",
+  "tool-video-edit":  "fal-ai/kling-video/v1.6/standard/video-to-video",
 };
 
 const FAL_VIDEO_MAP: Record<string, string> = { ...FAL_T2V_MAP, ...FAL_I2V_MAP };
@@ -74,6 +75,13 @@ function pickResult(modelId: string, data: Record<string, unknown>): { url: stri
     if (video?.url) return { url: video.url, mimeType: "video/mp4" };
     // Some sadtalker versions return a direct URL string
     if (typeof data.video_path === "string") return { url: data.video_path, mimeType: "video/mp4" };
+  }
+
+  // Tool: video edit → video
+  if (modelId === "tool-video-edit") {
+    const video = data.video as { url?: string } | undefined;
+    if (video?.url) return { url: video.url, mimeType: "video/mp4" };
+    throw new Error("fal.ai response contained no video URL");
   }
 
   // Tool: voiceover → audio
@@ -131,6 +139,7 @@ export interface ToolOptions {
   strength?: number;
   voice?: string;
   lightingPrompt?: string;
+  videoUrl?: string;
 }
 
 function buildInput(
@@ -199,6 +208,15 @@ function buildInput(
     return {
       base_image_url: imageUrl,
       swap_image_url: opts?.swapImageUrl,
+    };
+  }
+
+  // Tool: video edit (Kling v2v)
+  if (modelId === "tool-video-edit") {
+    return {
+      video_url: opts?.videoUrl,
+      prompt,
+      duration: opts?.duration ?? "5",
     };
   }
 

@@ -24,6 +24,8 @@ export interface ToolPageConfig {
   outputIsAudio?: boolean;
   /** No image input — prompt/text is the only input */
   textOnlyInput?: boolean;
+  /** Input is a video file instead of an image */
+  inputIsVideo?: boolean;
   /** Extra dropdown below prompt */
   selectField?: { label: string; name: string; options: { value: string; label: string }[] };
   badge?: string;
@@ -52,6 +54,15 @@ function UploadZone({
   accept?: string;
 }) {
   const ref = useRef<HTMLInputElement>(null);
+  const isAudio = accept.includes("audio");
+  const isVideo = accept.includes("video");
+
+  function fileHint() {
+    if (isAudio) return "MP3, WAV, M4A";
+    if (isVideo) return "MP4, MOV, WebM · max 100 MB";
+    return "JPEG, PNG, WebP · max 10 MB";
+  }
+
   return (
     <div className="space-y-1.5">
       <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">{label}</p>
@@ -59,12 +70,18 @@ function UploadZone({
         onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }} />
       {preview ? (
         <div className="relative rounded-xl overflow-hidden border border-zinc-700 bg-zinc-900 h-44 group">
-          {accept.includes("audio") ? (
+          {isAudio || isVideo ? (
             <div className="w-full h-full flex items-center justify-center gap-3 text-indigo-400">
-              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z" />
-              </svg>
-              <span className="text-sm text-zinc-300">Audio ready</span>
+              {isVideo ? (
+                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5 20.47 6.527a.75.75 0 0 1 1.28.53v9.886a.75.75 0 0 1-1.28.53L15.75 13.5M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                </svg>
+              ) : (
+                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z" />
+                </svg>
+              )}
+              <span className="text-sm text-zinc-300">{isVideo ? "Video ready" : "Audio ready"}</span>
             </div>
           ) : (
             /* eslint-disable-next-line @next/next/no-img-element */
@@ -83,7 +100,11 @@ function UploadZone({
           className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors space-y-2 ${disabled ? "border-zinc-800 cursor-not-allowed opacity-50" : "border-zinc-800 hover:border-indigo-500/60 cursor-pointer"}`}
         >
           <div className="mx-auto w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
-            {accept.includes("audio") ? (
+            {isVideo ? (
+              <svg className="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5 20.47 6.527a.75.75 0 0 1 1.28.53v9.886a.75.75 0 0 1-1.28.53L15.75 13.5M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+            ) : isAudio ? (
               <svg className="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z" />
               </svg>
@@ -94,7 +115,7 @@ function UploadZone({
             )}
           </div>
           <p className="text-sm text-zinc-400">Drop or click to upload</p>
-          <p className="text-xs text-zinc-600">{accept.includes("audio") ? "MP3, WAV, M4A" : "JPEG, PNG, WebP · max 10 MB"}</p>
+          <p className="text-xs text-zinc-600">{fileHint()}</p>
         </div>
       )}
     </div>
@@ -122,13 +143,13 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
     const setPreview = slot === "image" ? setImagePreview : slot === "image2" ? setImage2Preview : setAudioPreview;
     const setUrl    = slot === "image" ? setImageUrl    : slot === "image2" ? setImage2Url    : setAudioUrl;
 
-    // Local preview
-    if (!file.type.startsWith("audio")) {
+    // Local preview — skip data URL for audio/video (too large / not useful)
+    if (file.type.startsWith("image")) {
       const reader = new FileReader();
       reader.onload = (e) => setPreview(e.target?.result as string);
       reader.readAsDataURL(file);
     } else {
-      setPreview("audio");
+      setPreview(file.type.startsWith("video") ? "video" : "audio");
     }
 
     setPhase("uploading");
@@ -155,7 +176,7 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
     setErrorMsg(null);
     setResultUrl(null);
 
-    const body: Record<string, unknown> = config.textOnlyInput ? {} : { imageUrl };
+    const body: Record<string, unknown> = config.textOnlyInput ? {} : config.inputIsVideo ? { videoUrl: imageUrl } : { imageUrl };
     if (config.textOnlyInput)   body.text = prompt.trim();
     else if (config.hasPrompt)  body.prompt = prompt.trim();
     if (config.hasSecondImage)  body.swapImageUrl = image2Url;
@@ -221,10 +242,11 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
 
             {!config.textOnlyInput && (
               <UploadZone
-                label={config.inputLabel ?? "Input image"}
+                label={config.inputLabel ?? (config.inputIsVideo ? "Input video" : "Input image")}
                 preview={imagePreview}
                 onFile={(f) => handleFile(f, "image")}
                 disabled={isProcessing}
+                accept={config.inputIsVideo ? "video/*" : "image/*"}
               />
             )}
 

@@ -113,13 +113,14 @@ export const VIDEO_MODELS = MODELS.filter((m) => m.type === "video");
 export const AUDIO_MODELS = MODELS.filter((m) => m.type === "audio");
 
 export const TOOL_CREDITS: Record<string, number> = {
-  "tool-upscale":    10,
-  "tool-bg-remove":  10,
-  "tool-img-edit":   20,
-  "tool-lipsync":    80,
-  "tool-faceswap":   30,
-  "tool-voiceover":  15,
-  "tool-relight":    25,
+  "tool-upscale":     10,
+  "tool-bg-remove":   10,
+  "tool-img-edit":    20,
+  "tool-lipsync":     80,
+  "tool-faceswap":    30,
+  "tool-voiceover":   15,
+  "tool-relight":     25,
+  "tool-video-edit":  60,
 };
 
 /** Server-side credit cost — duration "10" doubles Kling cost */
