@@ -21,6 +21,11 @@ export interface ToolPageConfig {
   hasAudio?: boolean;
   strengthControl?: boolean;
   outputIsVideo?: boolean;
+  outputIsAudio?: boolean;
+  /** No image input — prompt/text is the only input */
+  textOnlyInput?: boolean;
+  /** Extra dropdown below prompt */
+  selectField?: { label: string; name: string; options: { value: string; label: string }[] };
   badge?: string;
 }
 
@@ -102,6 +107,7 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
   const [phase, setPhase] = useState<"idle" | "uploading" | "processing" | "done" | "error">("idle");
   const [prompt, setPrompt] = useState("");
   const [strength, setStrength] = useState(0.75);
+  const [selectValue, setSelectValue] = useState(config.selectField?.options[0]?.value ?? "");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
 
@@ -137,7 +143,8 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
     }
   }
 
-  const canProcess = phase === "idle" && !!imageUrl &&
+  const canProcess = phase === "idle" &&
+    (config.textOnlyInput ? !!prompt.trim() : !!imageUrl) &&
     (!config.hasSecondImage || !!image2Url) &&
     (!config.hasAudio || !!audioUrl) &&
     (!config.hasPrompt || !!prompt.trim());
@@ -148,11 +155,18 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
     setErrorMsg(null);
     setResultUrl(null);
 
-    const body: Record<string, unknown> = { imageUrl };
-    if (config.hasPrompt)       body.prompt = prompt.trim();
+    const body: Record<string, unknown> = config.textOnlyInput ? {} : { imageUrl };
+    if (config.textOnlyInput)   body.text = prompt.trim();
+    else if (config.hasPrompt)  body.prompt = prompt.trim();
     if (config.hasSecondImage)  body.swapImageUrl = image2Url;
     if (config.hasAudio)        body.audioUrl = audioUrl;
     if (config.strengthControl) body.strength = strength;
+    if (config.selectField)     body[config.selectField.name] = selectValue || undefined;
+    // For relight, the prompt goes as lightingPrompt
+    if (config.modelId === "tool-relight" && config.hasPrompt) {
+      body.lightingPrompt = prompt.trim();
+      delete body.prompt;
+    }
 
     let jobId: string;
     try {
@@ -205,12 +219,14 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
           {/* Controls */}
           <div className="lg:w-[380px] shrink-0 space-y-5">
 
-            <UploadZone
-              label={config.inputLabel ?? "Input image"}
-              preview={imagePreview}
-              onFile={(f) => handleFile(f, "image")}
-              disabled={isProcessing}
-            />
+            {!config.textOnlyInput && (
+              <UploadZone
+                label={config.inputLabel ?? "Input image"}
+                preview={imagePreview}
+                onFile={(f) => handleFile(f, "image")}
+                disabled={isProcessing}
+              />
+            )}
 
             {config.hasSecondImage && (
               <UploadZone
@@ -231,19 +247,37 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
               />
             )}
 
-            {config.hasPrompt && (
+            {(config.hasPrompt || config.textOnlyInput) && (
               <div className="space-y-1.5">
                 <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
-                  {config.promptLabel ?? "Edit instruction"}
+                  {config.promptLabel ?? (config.textOnlyInput ? "Your text" : "Edit instruction")}
                 </p>
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder={config.promptPlaceholder ?? "Describe the edit…"}
-                  rows={3}
+                  placeholder={config.promptPlaceholder ?? (config.textOnlyInput ? "Type what you want to say…" : "Describe the edit…")}
+                  rows={config.textOnlyInput ? 5 : 3}
                   disabled={isProcessing}
                   className="w-full rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 p-4 text-sm resize-none focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
                 />
+              </div>
+            )}
+
+            {config.selectField && (
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
+                  {config.selectField.label}
+                </p>
+                <select
+                  value={selectValue}
+                  onChange={(e) => setSelectValue(e.target.value)}
+                  disabled={isProcessing}
+                  className="w-full rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 p-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
+                >
+                  {config.selectField.options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
               </div>
             )}
 
@@ -304,18 +338,42 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
           {/* Result canvas */}
           <div className="flex-1 min-h-[400px]">
             {resultUrl ? (
-              <div className="rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 relative group h-full min-h-[400px]">
-                {config.outputIsVideo ? (
-                  <video src={resultUrl} controls autoPlay loop className="w-full h-full object-contain" />
+              <div className="rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 relative group h-full min-h-[400px] flex flex-col items-center justify-center">
+                {config.outputIsAudio ? (
+                  <div className="w-full p-8 space-y-6 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center mx-auto">
+                      <svg className="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-zinc-400">Your voiceover is ready</p>
+                    <audio src={resultUrl} controls className="w-full max-w-md mx-auto" />
+                    <a href={resultUrl} download target="_blank" rel="noopener noreferrer"
+                      className="inline-block text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-2 rounded-lg transition-colors">
+                      Download audio
+                    </a>
+                  </div>
+                ) : config.outputIsVideo ? (
+                  <>
+                    <video src={resultUrl} controls autoPlay loop className="w-full h-full object-contain" />
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4 translate-y-full group-hover:opacity-100 group-hover:translate-y-0 transition-transform">
+                      <a href={resultUrl} download target="_blank" rel="noopener noreferrer"
+                        className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg">
+                        Download
+                      </a>
+                    </div>
+                  </>
                 ) : (
-                  <Image src={resultUrl} alt="Result" fill className="object-contain" unoptimized />
+                  <>
+                    <Image src={resultUrl} alt="Result" fill className="object-contain" unoptimized />
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4 translate-y-full group-hover:opacity-100 group-hover:translate-y-0 transition-transform">
+                      <a href={resultUrl} download target="_blank" rel="noopener noreferrer"
+                        className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg">
+                        Download
+                      </a>
+                    </div>
+                  </>
                 )}
-                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4 translate-y-full group-hover:opacity-100 group-hover:translate-y-0 transition-transform">
-                  <a href={resultUrl} download target="_blank" rel="noopener noreferrer"
-                    className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg">
-                    Download
-                  </a>
-                </div>
               </div>
             ) : (
               <div className="h-full min-h-[400px] rounded-2xl border-2 border-dashed border-zinc-800 flex items-center justify-center">
@@ -333,7 +391,9 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
                     )}
                   </div>
                   <p className="text-sm text-zinc-600">
-                    {isProcessing ? "Processing your image…" : "Result will appear here"}
+                    {isProcessing
+                      ? (config.textOnlyInput ? "Generating audio…" : "Processing…")
+                      : "Result will appear here"}
                   </p>
                 </div>
               </div>

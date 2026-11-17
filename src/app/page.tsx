@@ -20,39 +20,37 @@ const HERO_TILES = [
   { bg: "linear-gradient(145deg,#78350f 0%,#92400e 100%)", label: "UGC Ad",        delay: "2.0s",  scanDelay: "4.0s" },
 ];
 
-// ── Tool cards (no emojis) ────────────────────────────────────────────────────
+// ── Feature cards ─────────────────────────────────────────────────────────────
 
-const TOOLS = [
+const FEATURES = [
   {
-    category: "FOR BUSINESS",
+    category: "GENERATE",
     accent: "bg-indigo-500",
     items: [
-      { title: "Product Ads",    desc: "AI-generated product videos and images that sell",          href: "/create/product-ad",   badge: null },
-      { title: "Brand Images",   desc: "Consistent visual identity at scale — no designer needed", href: "/create/brand-image",  badge: null },
-      { title: "Social Content", desc: "Scroll-stopping visuals for Instagram, TikTok, LinkedIn",  href: "/create/social-reel",  badge: null },
-      { title: "Film Trailer",   desc: "Cinematic brand stories in seconds",                        href: "/create/brand-film",   badge: null },
-      { title: "UGC Ads",        desc: "Authentic creator-style ads that convert",                  href: "/create/ugc-ad",       badge: null },
-      { title: "Branding Ads",   desc: "On-brand video ads at scale",                              href: "/create/product-ad",   badge: null },
+      { title: "Text to Video",    desc: "Turn words into cinematic AI clips with Kling Pro",         href: "/studio",                badge: null },
+      { title: "Animate Images",   desc: "Bring any photo or illustration to life",                   href: "/studio",                badge: "NEW" },
+      { title: "Image Generation", desc: "FLUX, Ideogram, and more — stunning stills in seconds",     href: "/create/image",          badge: null },
+      { title: "AI Audio",         desc: "30-second music and soundscapes from a text prompt",         href: "/studio?model=stable-audio", badge: null },
     ],
   },
   {
-    category: "VIDEO",
+    category: "EDIT & TRANSFORM",
     accent: "bg-violet-500",
     items: [
-      { title: "Text to Video",   desc: "Turn your words into cinematic AI clips",             href: "/create/text-to-video", badge: null },
-      { title: "Animate Images",  desc: "Bring any photo or illustration to life",             href: "/studio",               badge: "NEW" },
-      { title: "Music Video",     desc: "Sync AI visuals to any audio track",                  href: "/studio",               badge: "SOON" },
-      { title: "Motion Control",  desc: "Direct precise camera movement in your video",        href: "/studio",               badge: "SOON" },
+      { title: "Upscale 4×",    desc: "Enhance resolution and add fine detail with AI",               href: "/tools/upscale",         badge: null },
+      { title: "Remove BG",     desc: "Clean, precise background removal in one click",               href: "/tools/background",      badge: null },
+      { title: "Edit Image",    desc: "Repaint, restyle, or recompose any photo with a prompt",       href: "/tools/inpaint",         badge: null },
+      { title: "Relight",       desc: "Change the lighting of any portrait or product photo",         href: "/tools/relight",         badge: "NEW" },
     ],
   },
   {
-    category: "IMAGE",
+    category: "VOICE & VIDEO TOOLS",
     accent: "bg-rose-500",
     items: [
-      { title: "Image Generator", desc: "Generate stunning images from text prompts",             href: "/create/image",        badge: null },
-      { title: "Product Shots",   desc: "Studio-quality product photography without a studio",   href: "/create/product-shot", badge: null },
-      { title: "Poster Design",   desc: "Bold typographic and graphic posters",                   href: "/create/poster",       badge: null },
-      { title: "Image Upscale",   desc: "Enhance resolution and add fine detail with AI",         href: "/studio",              badge: "SOON" },
+      { title: "Voice Over",    desc: "Natural-sounding speech from your script — 7 voices",          href: "/tools/voiceover",       badge: "NEW" },
+      { title: "Lip Sync",      desc: "Animate a portrait to lip-sync any audio track",               href: "/tools/lipsync",         badge: "NEW" },
+      { title: "Face Swap",     desc: "Swap faces between photos with a single upload",               href: "/tools/faceswap",        badge: "HOT" },
+      { title: "Inspirations",  desc: "Browse 30+ expert prompts across 8 creative categories",       href: "/inspire",               badge: null },
     ],
   },
 ];
@@ -167,10 +165,10 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-0 divide-y sm:divide-y-0 sm:divide-x divide-zinc-800/60">
             {[
-              { value: "7+",             label: "AI Models" },
-              { value: "T2V + I2V",      label: "Video Generation" },
-              { value: "5 Ratios",       label: "Aspect Ratios" },
-              { value: "Pay Per Use",    label: "No Subscription" },
+              { value: "10+",           label: "AI Models" },
+              { value: "7 Tools",       label: "Edit & Transform" },
+              { value: "T2V + I2V",     label: "Video Generation" },
+              { value: "Pay Per Use",   label: "No Subscription" },
             ].map(({ value, label }) => (
               <div key={label} className="text-center sm:px-8 py-2">
                 <p className="text-xl font-black text-zinc-100 tracking-tight">{value}</p>
@@ -181,8 +179,32 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Tool cards ────────────────────────────────────────────────────── */}
-      <section className="pt-24 pb-8">
+      {/* ── How it works ──────────────────────────────────────────────────── */}
+      <section className="pt-20 pb-4">
+        <div className="max-w-5xl mx-auto px-4 space-y-10">
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-100 uppercase">
+              Create in three steps
+            </h2>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-4">
+            {[
+              { step: "01", title: "Write a prompt", desc: "Describe what you want to create — a cinematic scene, a product shot, a voiceover script." },
+              { step: "02", title: "Pick a model",   desc: "Choose from 10+ leading AI models. FLUX, Kling Pro, Kokoro, and more — all in one place." },
+              { step: "03", title: "Download & share", desc: "Your creation is ready in seconds. Download it, share the link, or use it in your next project." },
+            ].map(({ step, title, desc }) => (
+              <div key={step} className="relative bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 space-y-3">
+                <span className="text-5xl font-black text-zinc-800 leading-none select-none">{step}</span>
+                <h3 className="text-base font-bold text-zinc-100 tracking-tight">{title}</h3>
+                <p className="text-sm text-zinc-500 leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Feature cards ─────────────────────────────────────────────────── */}
+      <section className="pt-16 pb-8">
         <div className="max-w-5xl mx-auto px-4 space-y-16">
 
           <div className="text-center space-y-3">
@@ -190,11 +212,11 @@ export default function Home() {
               Everything you need to create
             </h2>
             <p className="text-sm text-zinc-500 max-w-sm mx-auto">
-              Professional AI content generation for every use case
+              Generate, edit, and transform — all from one platform
             </p>
           </div>
 
-          {TOOLS.map(({ category, accent, items }) => (
+          {FEATURES.map(({ category, accent, items }) => (
             <div key={category} className="space-y-5">
               <div className="flex items-center gap-3">
                 <div className={`w-1 h-4 rounded-full ${accent}`} />
@@ -203,7 +225,7 @@ export default function Home() {
                 </span>
                 <div className="flex-1 h-px bg-zinc-800" />
               </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {items.map((tool) => (
                   <Link
                     key={tool.title}
@@ -212,14 +234,13 @@ export default function Home() {
                       tool.badge === "SOON" ? "opacity-50 pointer-events-none" : ""
                     }`}
                   >
-                    {/* Accent line at top */}
                     <div className={`absolute top-0 left-5 right-5 h-px ${accent} opacity-0 group-hover:opacity-60 transition-opacity rounded-full`} />
 
                     <div className="flex items-start justify-between mb-3">
                       <div className={`w-2 h-2 rounded-full mt-1 ${accent} opacity-60`} />
                       {tool.badge && (
                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full tracking-wider ${
-                          tool.badge === "NEW"
+                          tool.badge === "NEW" || tool.badge === "HOT"
                             ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
                             : "bg-zinc-800 text-zinc-500 border border-zinc-700"
                         }`}>
@@ -227,12 +248,12 @@ export default function Home() {
                         </span>
                       )}
                     </div>
-                    <h3 className="font-bold text-zinc-100 mb-1.5 group-hover:text-white transition-colors tracking-tight">
+                    <h3 className="font-bold text-zinc-100 mb-1.5 group-hover:text-white transition-colors tracking-tight text-sm">
                       {tool.title}
                     </h3>
-                    <p className="text-sm text-zinc-500 leading-relaxed">{tool.desc}</p>
+                    <p className="text-xs text-zinc-500 leading-relaxed">{tool.desc}</p>
                     {tool.badge !== "SOON" && (
-                      <span className="absolute bottom-5 right-5 text-zinc-700 group-hover:text-indigo-400 transition-colors text-sm">
+                      <span className="absolute bottom-4 right-4 text-zinc-700 group-hover:text-indigo-400 transition-colors text-sm">
                         →
                       </span>
                     )}

@@ -176,6 +176,24 @@ function FaceIcon() {
   );
 }
 
+function VoiceIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2 8h1.5m9 0H14M4.5 5h.5m6 0h.5M6 3h.5m3 0h.5M6 13h.5m3 0h.5M4.5 11h.5m6 0h.5"/>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 2v12"/>
+    </svg>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
+      <circle cx="8" cy="8" r="3"/>
+      <path strokeLinecap="round" d="M8 1v2M8 13v2M1 8h2m10 0h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/>
+    </svg>
+  );
+}
+
 function AdminIcon() {
   return (
     <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
@@ -238,6 +256,8 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             <NavLink href="/tools/inpaint" label="Edit Image" icon={<PencilIcon />} onNavigate={onNavigate} />
             <NavLink href="/tools/lipsync" label="Lip Sync" icon={<MicIcon />} badge="NEW" onNavigate={onNavigate} />
             <NavLink href="/tools/faceswap" label="Face Swap" icon={<FaceIcon />} badge="HOT" onNavigate={onNavigate} />
+            <NavLink href="/tools/voiceover" label="Voice Over" icon={<VoiceIcon />} badge="NEW" onNavigate={onNavigate} />
+            <NavLink href="/tools/relight" label="Relight" icon={<SunIcon />} badge="NEW" onNavigate={onNavigate} />
           </div>
 
           <div className="space-y-0.5">

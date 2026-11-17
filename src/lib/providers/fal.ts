@@ -30,11 +30,13 @@ const FAL_AUDIO_MAP: Record<string, string> = {
 
 // Tool endpoints (image editing, upscale, etc.)
 const FAL_TOOL_MAP: Record<string, string> = {
-  "tool-upscale":   "fal-ai/aura-sr",
-  "tool-bg-remove": "fal-ai/birefnet",
-  "tool-img-edit":  "fal-ai/flux/dev/image-to-image",
-  "tool-lipsync":   "fal-ai/sadtalker",
-  "tool-faceswap":  "fal-ai/faceswap",
+  "tool-upscale":    "fal-ai/aura-sr",
+  "tool-bg-remove":  "fal-ai/birefnet",
+  "tool-img-edit":   "fal-ai/flux/dev/image-to-image",
+  "tool-lipsync":    "fal-ai/sadtalker",
+  "tool-faceswap":   "fal-ai/faceswap",
+  "tool-voiceover":  "fal-ai/kokoro",
+  "tool-relight":    "fal-ai/ic-light",
 };
 
 const FAL_VIDEO_MAP: Record<string, string> = { ...FAL_T2V_MAP, ...FAL_I2V_MAP };
@@ -74,6 +76,23 @@ function pickResult(modelId: string, data: Record<string, unknown>): { url: stri
     if (typeof data.video_path === "string") return { url: data.video_path, mimeType: "video/mp4" };
   }
 
+  // Tool: voiceover → audio
+  if (modelId === "tool-voiceover") {
+    const audio = (data.audio ?? data.audio_file) as { url?: string } | undefined;
+    if (audio?.url) return { url: audio.url, mimeType: "audio/mp3" };
+    if (typeof data.url === "string") return { url: data.url, mimeType: "audio/mp3" };
+    throw new Error("fal.ai response contained no audio URL");
+  }
+
+  // Tool: relight → image
+  if (modelId === "tool-relight") {
+    const imgs = data.images as Array<{ url: string }> | undefined;
+    if (imgs?.[0]?.url) return { url: imgs[0].url, mimeType: "image/jpeg" };
+    const img = data.image as { url?: string } | undefined;
+    if (img?.url) return { url: img.url, mimeType: "image/jpeg" };
+    throw new Error("fal.ai response contained no image URL");
+  }
+
   // Tool: single image response (upscale, bg-remove, faceswap)
   if (modelId === "tool-upscale" || modelId === "tool-bg-remove" || modelId === "tool-faceswap") {
     const img = (data.image ?? data.output) as { url?: string } | undefined;
@@ -110,6 +129,8 @@ export interface ToolOptions {
   audioUrl?: string;
   swapImageUrl?: string;
   strength?: number;
+  voice?: string;
+  lightingPrompt?: string;
 }
 
 function buildInput(
@@ -178,6 +199,21 @@ function buildInput(
     return {
       base_image_url: imageUrl,
       swap_image_url: opts?.swapImageUrl,
+    };
+  }
+
+  // Tool: voiceover (Kokoro TTS)
+  if (modelId === "tool-voiceover") {
+    const input: Record<string, unknown> = { text: prompt };
+    if (opts?.voice) input.voice = opts.voice;
+    return input;
+  }
+
+  // Tool: relight (IC-Light)
+  if (modelId === "tool-relight") {
+    return {
+      image_url: imageUrl,
+      prompt: opts?.lightingPrompt ?? prompt,
     };
   }
 
