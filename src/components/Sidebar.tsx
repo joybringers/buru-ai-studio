@@ -11,6 +11,7 @@ function isActivePath(pathname: string, href: string): boolean {
   const hrefPath = href.split("?")[0];
   if (hrefPath === "/studio") return pathname === "/studio";
   if (hrefPath === "/create") return pathname === "/create";
+  if (hrefPath.startsWith("/tools/")) return pathname === hrefPath;
   return pathname === hrefPath || pathname.startsWith(hrefPath + "/");
 }
 
@@ -119,6 +120,62 @@ function GalleryIcon() {
   );
 }
 
+function SparkleIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 2v2M8 12v2M2 8h2m8 0h2M4.22 4.22l1.42 1.42M10.36 10.36l1.42 1.42M4.22 11.78l1.42-1.42M10.36 5.64l1.42-1.42"/>
+      <circle cx="8" cy="8" r="2"/>
+    </svg>
+  );
+}
+
+function UpscaleIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2 14 7 9l3 3 4-5"/>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11 2h3v3M14 2l-4 4"/>
+    </svg>
+  );
+}
+
+function ScissorsIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
+      <circle cx="4" cy="5" r="2"/>
+      <circle cx="4" cy="11" r="2"/>
+      <path strokeLinecap="round" d="M6 5.5 14 2M6 10.5 14 14M6 5.5 10 8M6 10.5 10 8"/>
+    </svg>
+  );
+}
+
+function PencilIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11.5 2.5 13.5 4.5 5 13H3v-2L11.5 2.5Z"/>
+    </svg>
+  );
+}
+
+function MicIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
+      <rect x="5.5" y="1.5" width="5" height="8" rx="2.5"/>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.5 8A5.5 5.5 0 0 0 13.5 8M8 13.5v1.5M5 15h6"/>
+    </svg>
+  );
+}
+
+function FaceIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
+      <circle cx="8" cy="8" r="6"/>
+      <circle cx="5.5" cy="7" r="1" fill="currentColor" stroke="none"/>
+      <circle cx="10.5" cy="7" r="1" fill="currentColor" stroke="none"/>
+      <path strokeLinecap="round" d="M5.5 10.5a3 3 0 0 0 5 0"/>
+    </svg>
+  );
+}
+
 function AdminIcon() {
   return (
     <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
@@ -168,14 +225,24 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           </div>
 
           <div className="space-y-0.5">
-            <SectionLabel label="Tools" />
+            <SectionLabel label="Quick Start" />
             <NavLink href="/create/image" label="Image" icon={<ImageIcon />} onNavigate={onNavigate} />
             <NavLink href="/create/text-to-video" label="Video" icon={<VideoIcon />} onNavigate={onNavigate} />
             <NavLink href="/studio?model=stable-audio" label="Audio" icon={<AudioIcon />} onNavigate={onNavigate} />
           </div>
 
           <div className="space-y-0.5">
+            <SectionLabel label="Tools" />
+            <NavLink href="/tools/upscale" label="Upscale" icon={<UpscaleIcon />} onNavigate={onNavigate} />
+            <NavLink href="/tools/background" label="Remove BG" icon={<ScissorsIcon />} onNavigate={onNavigate} />
+            <NavLink href="/tools/inpaint" label="Edit Image" icon={<PencilIcon />} onNavigate={onNavigate} />
+            <NavLink href="/tools/lipsync" label="Lip Sync" icon={<MicIcon />} badge="NEW" onNavigate={onNavigate} />
+            <NavLink href="/tools/faceswap" label="Face Swap" icon={<FaceIcon />} badge="HOT" onNavigate={onNavigate} />
+          </div>
+
+          <div className="space-y-0.5">
             <SectionLabel label="Library" />
+            <NavLink href="/inspire" label="Inspirations" icon={<SparkleIcon />} onNavigate={onNavigate} />
             <NavLink href="/gallery" label="Gallery" icon={<GalleryIcon />} onNavigate={onNavigate} />
           </div>
 

@@ -64,6 +64,14 @@ export const MODELS: Model[] = [
     description: "Cinematic quality T2V",
   },
   {
+    id: "kling-t2v-pro",
+    name: "Kling Pro",
+    provider: "fal.ai",
+    type: "video",
+    credits: 150,
+    description: "Pro quality T2V",
+  },
+  {
     id: "kling-i2v",
     name: "Kling Animate",
     provider: "fal.ai",
@@ -71,6 +79,15 @@ export const MODELS: Model[] = [
     inputType: "image",
     credits: 60,
     description: "Animate your image",
+  },
+  {
+    id: "kling-i2v-pro",
+    name: "Kling Animate Pro",
+    provider: "fal.ai",
+    type: "video",
+    inputType: "image",
+    credits: 150,
+    description: "Pro quality animation",
   },
   {
     id: "minimax-i2v",
@@ -94,6 +111,22 @@ export const MODELS: Model[] = [
 export const IMAGE_MODELS = MODELS.filter((m) => m.type === "image");
 export const VIDEO_MODELS = MODELS.filter((m) => m.type === "video");
 export const AUDIO_MODELS = MODELS.filter((m) => m.type === "audio");
+
+export const TOOL_CREDITS: Record<string, number> = {
+  "tool-upscale":   10,
+  "tool-bg-remove": 10,
+  "tool-img-edit":  20,
+  "tool-lipsync":   80,
+  "tool-faceswap":  30,
+};
+
+/** Server-side credit cost — duration "10" doubles Kling cost */
+export function computeJobCredits(modelId: string, duration?: string): number {
+  const model = MODELS.find((m) => m.id === modelId);
+  const base = model?.credits ?? 0;
+  if (duration === "10" && modelId.startsWith("kling")) return base * 2;
+  return base;
+}
 
 export const DRAFT_MODEL_ID = "flux-schnell";
 export const DRAFT_COUNT = 4;

@@ -148,6 +148,10 @@ export default function StudioPage() {
     [...PROMPT_SUGGESTIONS].sort(() => Math.random() - 0.5).slice(0, 4)
   );
 
+  // Video duration + quality
+  const [videoDuration, setVideoDuration] = useState<"5" | "10">("5");
+  const [videoQuality, setVideoQuality] = useState<"standard" | "pro">("standard");
+
   // Camera + enhance state
   const [selectedCameraMove, setSelectedCameraMove] = useState<string | null>(null);
   const [enhancing, setEnhancing] = useState(false);
@@ -162,11 +166,22 @@ export default function StudioPage() {
   const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const selectedModel = MODELS.find((m) => m.id === modelId) ?? IMAGE_MODELS[0];
+  // Resolve effective model ID: quality toggle switches between standard and pro Kling
+  const effectiveModelId = (() => {
+    if (modelId === "kling-t2v" && videoQuality === "pro") return "kling-t2v-pro";
+    if (modelId === "kling-t2v-pro" && videoQuality === "standard") return "kling-t2v";
+    if (modelId === "kling-i2v" && videoQuality === "pro") return "kling-i2v-pro";
+    if (modelId === "kling-i2v-pro" && videoQuality === "standard") return "kling-i2v";
+    return modelId;
+  })();
+
+  const selectedModel = MODELS.find((m) => m.id === effectiveModelId) ?? IMAGE_MODELS[0];
   const isVideoModel = selectedModel.type === "video";
   const isAudioModel = selectedModel.type === "audio";
   const isI2V = selectedModel.inputType === "image";
   const isT2V = isVideoModel && !isI2V;
+  const isKling = effectiveModelId.startsWith("kling");
+  const displayCredits = isKling ? (videoDuration === "10" ? selectedModel.credits * 2 : selectedModel.credits) : selectedModel.credits;
 
   const cameraText = selectedCameraMove ? CAMERA_MOVES.find((m) => m.id === selectedCameraMove)?.text ?? "" : "";
   const finalPrompt = prompt.trim() + (cameraText ? `, ${cameraText}` : "");
@@ -187,7 +202,7 @@ export default function StudioPage() {
   const referralLink = session?.user?.id ? `${APP_URL}/?ref=${session.user.id}` : null;
 
   const blockedTerm = BLOCKED_TERMS.find((t) => prompt.toLowerCase().includes(t.toLowerCase()));
-  const insufficientBalance = balance < selectedModel.credits;
+  const insufficientBalance = balance < displayCredits;
   const canGenerate =
     !blockedTerm &&
     !insufficientBalance &&
@@ -289,9 +304,10 @@ export default function StudioPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: finalPrompt || "animate naturally",
-          modelId,
+          modelId: effectiveModelId,
           ...(isVideoModel ? {} : { aspectRatio }),
           ...(isI2V && uploadedImageUrl ? { imageUrl: uploadedImageUrl } : {}),
+          ...(isKling ? { duration: videoDuration } : {}),
         }),
       });
       const body = await res.json();
@@ -595,8 +611,8 @@ export default function StudioPage() {
           <div className="space-y-2">
             <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Text → Video</p>
             <div className="grid grid-cols-2 gap-2">
-              {T2V_MODELS.map((m) => (
-                <ModelCard key={m.id} model={m} selected={modelId === m.id}
+              {T2V_MODELS.filter((m) => !m.id.endsWith("-pro")).map((m) => (
+                <ModelCard key={m.id} model={m} selected={["kling-t2v","kling-t2v-pro"].includes(modelId) ? m.id === "kling-t2v" : modelId === m.id}
                   onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
               ))}
             </div>
@@ -605,8 +621,8 @@ export default function StudioPage() {
           <div className="space-y-2">
             <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Image → Video</p>
             <div className="grid grid-cols-2 gap-2">
-              {I2V_MODELS.map((m) => (
-                <ModelCard key={m.id} model={m} selected={modelId === m.id}
+              {I2V_MODELS.filter((m) => !m.id.endsWith("-pro")).map((m) => (
+                <ModelCard key={m.id} model={m} selected={["kling-i2v","kling-i2v-pro"].includes(modelId) ? m.id === "kling-i2v" : modelId === m.id}
                   onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
               ))}
             </div>
@@ -624,13 +640,53 @@ export default function StudioPage() {
             <p className="text-xs text-zinc-700">Describe music or a sound effect · generates 30-second audio</p>
           </div>
 
+          {/* Duration + Quality controls — Kling models only */}
+          {isKling && (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Duration</p>
+                <div className="flex gap-2">
+                  {(["5", "10"] as const).map((d) => (
+                    <button key={d}
+                      onClick={() => setVideoDuration(d)}
+                      disabled={phase === "generating"}
+                      className={`flex-1 py-2 rounded-lg border text-xs font-medium transition-all disabled:opacity-50 ${
+                        videoDuration === d
+                          ? "border-indigo-500 bg-indigo-950/30 text-indigo-300"
+                          : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+                      }`}>
+                      {d}s
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Quality</p>
+                <div className="flex gap-2">
+                  {(["standard", "pro"] as const).map((q) => (
+                    <button key={q}
+                      onClick={() => setVideoQuality(q)}
+                      disabled={phase === "generating"}
+                      className={`flex-1 py-2 rounded-lg border text-xs font-medium transition-all disabled:opacity-50 ${
+                        videoQuality === q
+                          ? "border-indigo-500 bg-indigo-950/30 text-indigo-300"
+                          : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+                      }`}>
+                      {q.charAt(0).toUpperCase() + q.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Generate */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-zinc-300">{selectedModel.name}</span>
               <span className="text-sm font-semibold text-zinc-100">
-                {selectedModel.credits} cr
-                <span className="text-xs font-normal text-zinc-500 ml-1">{creditsToGBP(selectedModel.credits)}</span>
+                {displayCredits} cr
+                <span className="text-xs font-normal text-zinc-500 ml-1">{creditsToGBP(displayCredits)}</span>
               </span>
             </div>
             {isI2V && !uploadedImageUrl && phase === "idle" && (
@@ -638,7 +694,7 @@ export default function StudioPage() {
             )}
             {insufficientBalance && (
               <p className="text-xs text-amber-400 bg-amber-950/40 border border-amber-800 rounded-lg px-3 py-2">
-                Need {selectedModel.credits} cr · you have {balance} cr
+                Need {displayCredits} cr · you have {balance} cr
               </p>
             )}
             <button disabled={!canGenerate} onClick={handleGenerate}
@@ -647,7 +703,7 @@ export default function StudioPage() {
                   ? "bg-indigo-600 hover:bg-indigo-500 text-white"
                   : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
               }`}>
-              {isI2V ? "Animate image" : isVideoModel ? "Generate video" : isAudioModel ? "Generate audio" : "Generate image"} · {selectedModel.credits} cr
+              {isI2V ? "Animate image" : isVideoModel ? "Generate video" : isAudioModel ? "Generate audio" : "Generate image"} · {displayCredits} cr
             </button>
             <div className="flex justify-between items-center text-xs text-zinc-600">
               <span>Balance: {balance} cr</span>
