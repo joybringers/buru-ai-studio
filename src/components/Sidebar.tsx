@@ -264,6 +264,11 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
 
           <div className="space-y-0.5">
+            <SectionLabel label="Films" />
+            <NavLink href="/projects" label="My Films" icon={<FilmIcon />} badge="NEW" onNavigate={onNavigate} />
+          </div>
+
+          <div className="space-y-0.5">
             <SectionLabel label="Create" />
             <NavLink href="/chat" label="Chat Mode" icon={<ChatIcon />} badge="AI" onNavigate={onNavigate} />
             <NavLink href="/studio" label="Studio" icon={<StudioIcon />} onNavigate={onNavigate} />
