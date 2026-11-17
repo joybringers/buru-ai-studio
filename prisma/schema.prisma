@@ -142,8 +142,22 @@ model Project {
   script      Script?
   bible       StoryBible?
   storyboard  Storyboard?
+  timeline    Timeline?
   jobs        Job[]
   ledger      CreditLedgerEntry[]
+}
+
+model Timeline {
+  id         String    @id @default(cuid())
+  projectId  String    @unique
+  shotOrder  Json      @default("[]") // string[] — shot IDs in playback order
+  voiceTrack Json      @default("[]") // VoiceClip[] placeholder
+  musicTrack Json      @default("[]") // MusicClip[] placeholder
+  lockedAt   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model Storyboard {
