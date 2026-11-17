@@ -83,16 +83,22 @@ export default function QuoteClient({ project, creditBalance }: { project: Proje
         Your balance: <span className="text-[#2BE4FF] font-semibold">{creditBalance.toLocaleString()} credits</span>
       </p>
 
-      {/* Locked banner */}
+      {/* Locked banner + Start Writing CTA */}
       {isLocked && lockedUntil && (
         <div className="bg-[#022B1E] border border-emerald-800 rounded-xl p-4 mb-6 flex items-start gap-3">
           <span className="text-emerald-400 text-xl mt-0.5">🔒</span>
-          <div>
+          <div className="flex-1">
             <p className="text-emerald-300 font-semibold text-sm">Quote locked — price guaranteed</p>
             <p className="text-emerald-700 text-xs mt-0.5">
               Price is fixed until {lockedUntil.toLocaleString()}. You will never be charged above your cap.
             </p>
           </div>
+          <a
+            href={`/projects/${project.id}/script`}
+            className="flex-shrink-0 bg-[#6A4CFF] hover:bg-[#5636F0] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+          >
+            ✍️ Start Writing
+          </a>
         </div>
       )}
 

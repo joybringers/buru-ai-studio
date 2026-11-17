@@ -103,6 +103,30 @@ model Job {
 }
 
 // ── Film project tables ───────────────────────────────────────────────────────
+// Script: one per project; scenes stored as JSON; chat history in ScriptMessage
+model Script {
+  id        String   @id @default(cuid())
+  projectId String   @unique
+  scenes    Json     @default("[]") // Scene[]
+  version   Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project  Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  messages ScriptMessage[]
+}
+
+model ScriptMessage {
+  id        String   @id @default(cuid())
+  scriptId  String
+  role      String   // "user" | "assistant"
+  content   String
+  createdAt DateTime @default(now())
+
+  script Script @relation(fields: [scriptId], references: [id], onDelete: Cascade)
+}
+
+
 
 model Project {
   id           String   @id @default(cuid())
@@ -115,6 +139,7 @@ model Project {
 
   user   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   quote  FilmQuote?
+  script Script?
   jobs   Job[]
   ledger CreditLedgerEntry[]
 }
