@@ -134,6 +134,7 @@ model Project {
   title        String
   status       String   @default("draft") // draft | quoted | rendering | done
   targetLength Int      @default(180)     // seconds
+  reviewToken  String?  @unique           // public shareable review link token
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
