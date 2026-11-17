@@ -120,7 +120,8 @@ export const TOOL_CREDITS: Record<string, number> = {
   "tool-faceswap":    30,
   "tool-voiceover":   15,
   "tool-relight":     25,
-  "tool-video-edit":  60,
+  "tool-video-edit":   60,
+  "tool-voice-clone":  25,
 };
 
 /** Server-side credit cost — duration "10" doubles Kling cost */

@@ -26,6 +26,11 @@ export interface ToolPageConfig {
   textOnlyInput?: boolean;
   /** Input is a video file instead of an image */
   inputIsVideo?: boolean;
+  /** Primary input is an audio file (no image); requires audio + prompt */
+  audioOnlyInput?: boolean;
+  /** Extra optional textarea shown below the main prompt */
+  secondaryPromptLabel?: string;
+  secondaryPromptPlaceholder?: string;
   /** Extra dropdown below prompt */
   selectField?: { label: string; name: string; options: { value: string; label: string }[] };
   badge?: string;
@@ -127,6 +132,7 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
 
   const [phase, setPhase] = useState<"idle" | "uploading" | "processing" | "done" | "error">("idle");
   const [prompt, setPrompt] = useState("");
+  const [secondaryPrompt, setSecondaryPrompt] = useState("");
   const [strength, setStrength] = useState(0.75);
   const [selectValue, setSelectValue] = useState(config.selectField?.options[0]?.value ?? "");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -165,7 +171,9 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
   }
 
   const canProcess = phase === "idle" &&
-    (config.textOnlyInput ? !!prompt.trim() : !!imageUrl) &&
+    (config.textOnlyInput  ? !!prompt.trim() :
+     config.audioOnlyInput ? (!!audioUrl && !!prompt.trim()) :
+     !!imageUrl) &&
     (!config.hasSecondImage || !!image2Url) &&
     (!config.hasAudio || !!audioUrl) &&
     (!config.hasPrompt || !!prompt.trim());
@@ -176,13 +184,20 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
     setErrorMsg(null);
     setResultUrl(null);
 
-    const body: Record<string, unknown> = config.textOnlyInput ? {} : config.inputIsVideo ? { videoUrl: imageUrl } : { imageUrl };
+    const body: Record<string, unknown> =
+      config.textOnlyInput  ? {} :
+      config.inputIsVideo   ? { videoUrl: imageUrl } :
+      config.audioOnlyInput ? { refAudioUrl: audioUrl } :
+      { imageUrl };
+
     if (config.textOnlyInput)   body.text = prompt.trim();
     else if (config.hasPrompt)  body.prompt = prompt.trim();
+    if (config.audioOnlyInput)  body.prompt = prompt.trim();
     if (config.hasSecondImage)  body.swapImageUrl = image2Url;
     if (config.hasAudio)        body.audioUrl = audioUrl;
     if (config.strengthControl) body.strength = strength;
     if (config.selectField)     body[config.selectField.name] = selectValue || undefined;
+    if (config.secondaryPromptLabel && secondaryPrompt.trim()) body.refText = secondaryPrompt.trim();
     // For relight, the prompt goes as lightingPrompt
     if (config.modelId === "tool-relight" && config.hasPrompt) {
       body.lightingPrompt = prompt.trim();
@@ -240,13 +255,23 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
           {/* Controls */}
           <div className="lg:w-[380px] shrink-0 space-y-5">
 
-            {!config.textOnlyInput && (
+            {!config.textOnlyInput && !config.audioOnlyInput && (
               <UploadZone
                 label={config.inputLabel ?? (config.inputIsVideo ? "Input video" : "Input image")}
                 preview={imagePreview}
                 onFile={(f) => handleFile(f, "image")}
                 disabled={isProcessing}
                 accept={config.inputIsVideo ? "video/*" : "image/*"}
+              />
+            )}
+
+            {config.audioOnlyInput && (
+              <UploadZone
+                label={config.inputLabel ?? "Reference voice (5–30 sec)"}
+                preview={audioPreview}
+                onFile={(f) => handleFile(f, "audio")}
+                disabled={isProcessing}
+                accept="audio/*"
               />
             )}
 
@@ -269,16 +294,32 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
               />
             )}
 
-            {(config.hasPrompt || config.textOnlyInput) && (
+            {(config.hasPrompt || config.textOnlyInput || config.audioOnlyInput) && (
               <div className="space-y-1.5">
                 <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
-                  {config.promptLabel ?? (config.textOnlyInput ? "Your text" : "Edit instruction")}
+                  {config.promptLabel ?? (config.textOnlyInput ? "Your text" : config.audioOnlyInput ? "Script to generate" : "Edit instruction")}
                 </p>
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder={config.promptPlaceholder ?? (config.textOnlyInput ? "Type what you want to say…" : "Describe the edit…")}
-                  rows={config.textOnlyInput ? 5 : 3}
+                  placeholder={config.promptPlaceholder ?? (config.textOnlyInput ? "Type what you want to say…" : config.audioOnlyInput ? "Type the words you want spoken in the cloned voice…" : "Describe the edit…")}
+                  rows={config.textOnlyInput || config.audioOnlyInput ? 5 : 3}
+                  disabled={isProcessing}
+                  className="w-full rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 p-4 text-sm resize-none focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
+                />
+              </div>
+            )}
+
+            {config.secondaryPromptLabel && (
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
+                  {config.secondaryPromptLabel} <span className="text-zinc-700 normal-case font-normal">(optional)</span>
+                </p>
+                <textarea
+                  value={secondaryPrompt}
+                  onChange={(e) => setSecondaryPrompt(e.target.value)}
+                  placeholder={config.secondaryPromptPlaceholder ?? ""}
+                  rows={2}
                   disabled={isProcessing}
                   className="w-full rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 p-4 text-sm resize-none focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
                 />
@@ -349,7 +390,7 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
 
             {phase === "done" && (
               <button
-                onClick={() => { setPhase("idle"); setResultUrl(null); setImageUrl(null); setImagePreview(null); setImage2Url(null); setImage2Preview(null); setAudioUrl(null); setAudioPreview(null); setPrompt(""); }}
+                onClick={() => { setPhase("idle"); setResultUrl(null); setImageUrl(null); setImagePreview(null); setImage2Url(null); setImage2Preview(null); setAudioUrl(null); setAudioPreview(null); setPrompt(""); setSecondaryPrompt(""); }}
                 className="w-full py-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
               >
                 ← Start over

@@ -37,7 +37,8 @@ const FAL_TOOL_MAP: Record<string, string> = {
   "tool-faceswap":   "fal-ai/faceswap",
   "tool-voiceover":   "fal-ai/kokoro",
   "tool-relight":     "fal-ai/ic-light",
-  "tool-video-edit":  "fal-ai/kling-video/v1.6/standard/video-to-video",
+  "tool-video-edit":   "fal-ai/kling-video/v1.6/standard/video-to-video",
+  "tool-voice-clone":  "fal-ai/f5-tts",
 };
 
 const FAL_VIDEO_MAP: Record<string, string> = { ...FAL_T2V_MAP, ...FAL_I2V_MAP };
@@ -82,6 +83,14 @@ function pickResult(modelId: string, data: Record<string, unknown>): { url: stri
     const video = data.video as { url?: string } | undefined;
     if (video?.url) return { url: video.url, mimeType: "video/mp4" };
     throw new Error("fal.ai response contained no video URL");
+  }
+
+  // Tool: voice clone → audio
+  if (modelId === "tool-voice-clone") {
+    const audio = (data.audio ?? data.audio_file) as { url?: string } | undefined;
+    if (audio?.url) return { url: audio.url, mimeType: "audio/mp3" };
+    if (typeof data.url === "string") return { url: data.url, mimeType: "audio/mp3" };
+    throw new Error("fal.ai response contained no audio URL");
   }
 
   // Tool: voiceover → audio
@@ -140,6 +149,8 @@ export interface ToolOptions {
   voice?: string;
   lightingPrompt?: string;
   videoUrl?: string;
+  refAudioUrl?: string;
+  refText?: string;
 }
 
 function buildInput(
@@ -217,6 +228,15 @@ function buildInput(
       video_url: opts?.videoUrl,
       prompt,
       duration: opts?.duration ?? "5",
+    };
+  }
+
+  // Tool: voice clone (F5-TTS zero-shot)
+  if (modelId === "tool-voice-clone") {
+    return {
+      ref_audio_url: opts?.refAudioUrl,
+      gen_text:      prompt,
+      ref_text:      opts?.refText ?? "",
     };
   }
 
