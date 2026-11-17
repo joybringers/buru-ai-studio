@@ -105,12 +105,13 @@ model Job {
 // ── Film project tables ───────────────────────────────────────────────────────
 // Script: one per project; scenes stored as JSON; chat history in ScriptMessage
 model Script {
-  id        String   @id @default(cuid())
-  projectId String   @unique
-  scenes    Json     @default("[]") // Scene[]
-  version   Int      @default(1)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(cuid())
+  projectId        String   @unique
+  scenes           Json     @default("[]") // Scene[]
+  version          Int      @default(1)
+  continuityNotes  String   @default("") // AI continuity check output
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   project  Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   messages ScriptMessage[]
@@ -134,9 +135,10 @@ model Project {
   title        String
   status       String   @default("draft") // draft | quoted | rendering | done
   targetLength Int      @default(180)     // seconds
-  reviewToken  String?  @unique           // public shareable review link token
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  reviewToken      String?  @unique
+  aiLabelAccepted  Boolean  @default(false) // creator acknowledged AI-generated content
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   quote       FilmQuote?

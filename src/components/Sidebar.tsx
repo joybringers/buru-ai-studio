@@ -265,7 +265,8 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
           <div className="space-y-0.5">
             <SectionLabel label="Films" />
-            <NavLink href="/projects" label="My Films" icon={<FilmIcon />} badge="NEW" onNavigate={onNavigate} />
+            <NavLink href="/projects" label="My Films" icon={<FilmIcon />} onNavigate={onNavigate} />
+            <NavLink href="/templates" label="Templates" icon={<GridIcon />} badge="NEW" onNavigate={onNavigate} />
           </div>
 
           <div className="space-y-0.5">

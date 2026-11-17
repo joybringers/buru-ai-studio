@@ -51,6 +51,9 @@ export default async function ExportPage({ params }: { params: Promise<{ id: str
         hardCap: project.quote?.hardCap ?? 0,
       }}
       timelineLocked={!!project.timeline?.lockedAt}
+      aiLabelAccepted={project.aiLabelAccepted}
+      continuityNotes={project.script?.continuityNotes ?? ""}
+      hasScript={!!(project.script && (project.script.scenes as unknown[]).length > 0)}
     />
   );
 }

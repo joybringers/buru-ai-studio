@@ -21,6 +21,9 @@ const STEPS: { key: keyof Checklist; label: string; icon: string; href: (id: str
 export default function ExportPanel({
   projectId, projectTitle, reviewToken: initialToken,
   checklist, stats, timelineLocked,
+  aiLabelAccepted: initialLabel,
+  continuityNotes: initialContinuity,
+  hasScript,
 }: {
   projectId: string;
   projectTitle: string;
@@ -28,10 +31,18 @@ export default function ExportPanel({
   checklist: Checklist;
   stats: Stats;
   timelineLocked: boolean;
+  aiLabelAccepted: boolean;
+  continuityNotes: string;
+  hasScript: boolean;
 }) {
   const [token, setToken] = useState<string | null>(initialToken);
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [aiLabel, setAiLabel] = useState(initialLabel);
+  const [togglingLabel, setTogglingLabel] = useState(false);
+  const [continuity, setContinuity] = useState(initialContinuity);
+  const [checkingContinuity, setCheckingContinuity] = useState(false);
+  const [continuityError, setContinuityError] = useState<string | null>(null);
 
   const allReady = Object.values(checklist).every(Boolean);
   const doneCount = Object.values(checklist).filter(Boolean).length;
@@ -56,6 +67,28 @@ export default function ExportPanel({
     navigator.clipboard.writeText(reviewUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const toggleAiLabel = async () => {
+    setTogglingLabel(true);
+    const method = aiLabel ? "DELETE" : "POST";
+    const res = await fetch(`/api/projects/${projectId}/rights`, { method });
+    const data = await res.json();
+    setAiLabel(data.aiLabelAccepted ?? !aiLabel);
+    setTogglingLabel(false);
+  };
+
+  const runContinuityCheck = async () => {
+    setCheckingContinuity(true);
+    setContinuityError(null);
+    const res = await fetch(`/api/projects/${projectId}/continuity`, { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) {
+      setContinuityError(data.error ?? "Check failed");
+    } else {
+      setContinuity(data.notes ?? "");
+    }
+    setCheckingContinuity(false);
   };
 
   return (
@@ -113,6 +146,69 @@ export default function ExportPanel({
               </div>
             ))}
           </div>
+        </div>
+
+        {/* AI Rights Label */}
+        <div className="bg-[#121530] border border-[#1E2140] rounded-xl p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <h2 className="text-sm font-semibold text-[#F2F6FF] mb-1">🤖 AI Content Label</h2>
+              <p className="text-xs text-[#A8B0D8] leading-relaxed">
+                Acknowledge that this project was created with AI assistance. Required for publication on many platforms.
+                This label will appear on your review page.
+              </p>
+            </div>
+            <button
+              onClick={toggleAiLabel}
+              disabled={togglingLabel}
+              className={`shrink-0 relative w-12 h-6 rounded-full transition-colors ${
+                aiLabel ? "bg-[#6A4CFF]" : "bg-[#1E2140]"
+              } disabled:opacity-50`}
+            >
+              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                aiLabel ? "translate-x-7" : "translate-x-1"
+              }`} />
+            </button>
+          </div>
+          {aiLabel && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-[#A88FFF] bg-[#6A4CFF]/10 border border-[#6A4CFF]/20 rounded-lg px-3 py-2">
+              <span>✓</span>
+              <span>AI content label accepted — this project is marked as AI-assisted</span>
+            </div>
+          )}
+        </div>
+
+        {/* Continuity Check */}
+        <div className="bg-[#121530] border border-[#1E2140] rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-sm font-semibold text-[#F2F6FF]">🔍 Continuity Check</h2>
+              <p className="text-xs text-[#A8B0D8] mt-0.5">AI analysis of your script for plot holes and inconsistencies.</p>
+            </div>
+            <button
+              onClick={runContinuityCheck}
+              disabled={!hasScript || checkingContinuity}
+              className="shrink-0 bg-[#1E2140] hover:bg-[#2A2F5E] disabled:opacity-40 text-[#F2F6FF] text-xs px-4 py-2 rounded-lg transition-colors"
+            >
+              {checkingContinuity ? "Checking…" : continuity ? "Re-check" : "Run check"}
+            </button>
+          </div>
+
+          {continuityError && (
+            <p className="text-xs text-red-400 mb-2">{continuityError}</p>
+          )}
+
+          {continuity ? (
+            <div className="bg-[#0D0F1E] border border-[#1E2140] rounded-lg p-4 text-xs text-[#A8B0D8] leading-relaxed whitespace-pre-wrap font-mono">
+              {continuity}
+            </div>
+          ) : (
+            !checkingContinuity && (
+              <p className="text-xs text-[#4A5280]">
+                {hasScript ? "No continuity report yet — click Run check to analyse your script." : "Write your script first."}
+              </p>
+            )
+          )}
         </div>
 
         {/* Shareable review link */}
