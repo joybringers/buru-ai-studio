@@ -106,6 +106,19 @@ function ReferralHandler({ onMessage }: { onMessage: (msg: string | null) => voi
 
 // ── Main component ────────────────────────────────────────────────────────────
 
+const CAMERA_MOVES: { id: string; label: string; text: string }[] = [
+  { id: "tracking",   label: "Tracking",   text: "smooth side tracking shot" },
+  { id: "dolly-in",   label: "Dolly In",   text: "slow cinematic dolly push-in" },
+  { id: "dolly-out",  label: "Dolly Out",  text: "slow cinematic dolly pull-back" },
+  { id: "orbit",      label: "Orbit 360",  text: "smooth 360-degree orbit around the subject" },
+  { id: "crane",      label: "Crane",      text: "sweeping crane shot ascending" },
+  { id: "drone",      label: "Drone",      text: "aerial drone fly-through" },
+  { id: "steadicam",  label: "Steadicam",  text: "floating Steadicam follow shot" },
+  { id: "slow-zoom",  label: "Slow Zoom",  text: "slow gradual zoom in" },
+  { id: "dutch-tilt", label: "Dutch Tilt", text: "dramatic Dutch tilt angle" },
+  { id: "whip-pan",   label: "Whip Pan",   text: "fast cinematic whip pan" },
+];
+
 type Phase = "idle" | "uploading" | "generating" | "done" | "error";
 
 const POLL_INTERVAL_MS = 2500;
@@ -135,6 +148,15 @@ export default function StudioPage() {
     [...PROMPT_SUGGESTIONS].sort(() => Math.random() - 0.5).slice(0, 4)
   );
 
+  // Camera + enhance state
+  const [selectedCameraMove, setSelectedCameraMove] = useState<string | null>(null);
+  const [enhancing, setEnhancing] = useState(false);
+
+  // Reference image (character/style reference for T2V + image models)
+  const [referenceImageUrl, setReferenceImageUrl] = useState<string | null>(null);
+  const [localReferencePreview, setLocalReferencePreview] = useState<string | null>(null);
+  const referenceInputRef = useRef<HTMLInputElement>(null);
+
   // Image-to-video state
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
@@ -146,6 +168,9 @@ export default function StudioPage() {
   const isI2V = selectedModel.inputType === "image";
   const isT2V = isVideoModel && !isI2V;
 
+  const cameraText = selectedCameraMove ? CAMERA_MOVES.find((m) => m.id === selectedCameraMove)?.text ?? "" : "";
+  const finalPrompt = prompt.trim() + (cameraText ? `, ${cameraText}` : "");
+
   // Clear uploaded image when switching away from I2V models
   useEffect(() => {
     if (!isI2V) {
@@ -153,6 +178,11 @@ export default function StudioPage() {
       setLocalImagePreview(null);
     }
   }, [isI2V]);
+
+  // Clear camera move when switching to non-video model
+  useEffect(() => {
+    if (!isVideoModel) setSelectedCameraMove(null);
+  }, [isVideoModel]);
 
   const referralLink = session?.user?.id ? `${APP_URL}/?ref=${session.user.id}` : null;
 
@@ -212,6 +242,38 @@ export default function StudioPage() {
     if (file && file.type.startsWith("image/")) handleImageFile(file);
   }
 
+  async function handleReferenceFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = (e) => setLocalReferencePreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+    const form = new FormData();
+    form.append("file", file);
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      const data = await res.json();
+      if (res.ok) setReferenceImageUrl(data.url);
+    } catch {}
+  }
+
+  async function handleEnhancePrompt() {
+    if (!prompt.trim() || enhancing) return;
+    setEnhancing(true);
+    try {
+      const res = await fetch("/api/enhance-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: prompt.trim(),
+          modelType: selectedModel.type,
+          referenceImageUrl: referenceImageUrl ?? undefined,
+        }),
+      });
+      const data = await res.json();
+      if (data.enhanced) setPrompt(data.enhanced);
+    } catch {}
+    setEnhancing(false);
+  }
+
   // ── Generation ──────────────────────────────────────────────────────────────
 
   async function handleGenerate() {
@@ -226,7 +288,7 @@ export default function StudioPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: prompt.trim() || "animate naturally",
+          prompt: finalPrompt || "animate naturally",
           modelId,
           ...(isVideoModel ? {} : { aspectRatio }),
           ...(isI2V && uploadedImageUrl ? { imageUrl: uploadedImageUrl } : {}),
@@ -318,16 +380,38 @@ export default function StudioPage() {
 
           {/* Prompt */}
           <div className="space-y-2">
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder={isI2V
-                ? "Describe the motion — e.g. 'camera slowly zooms in, leaves blow in wind' (optional)"
-                : "Describe what you want to create…"}
-              rows={isI2V ? 3 : 4}
-              disabled={phase === "generating" || phase === "uploading"}
-              className="w-full rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 p-4 text-sm resize-none focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
-            />
+            <div className="relative">
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder={isI2V
+                  ? "Describe the motion — e.g. 'camera slowly zooms in, leaves blow in wind' (optional)"
+                  : "Describe what you want to create…"}
+                rows={isI2V ? 3 : 4}
+                disabled={phase === "generating" || phase === "uploading"}
+                className="w-full rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 p-4 text-sm resize-none focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50 pb-11"
+              />
+              {/* Enhance Prompt button — inline in textarea bottom bar */}
+              {prompt.trim() && phase === "idle" && (
+                <button
+                  onClick={handleEnhancePrompt}
+                  disabled={enhancing}
+                  className="absolute bottom-3 right-3 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-300 transition-all disabled:opacity-60"
+                >
+                  {enhancing ? (
+                    <>
+                      <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
+                        <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                      </svg>
+                      Enhancing…
+                    </>
+                  ) : (
+                    <>✦ Enhance</>
+                  )}
+                </button>
+              )}
+            </div>
             {/* Suggestions — only for image/T2V when empty */}
             {!prompt && !isI2V && phase === "idle" && (
               <div className="space-y-2">
@@ -353,6 +437,30 @@ export default function StudioPage() {
               </div>
             )}
           </div>
+
+          {/* Camera movement chips — video models only */}
+          {isVideoModel && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Camera movement</p>
+              <div className="flex flex-wrap gap-1.5">
+                {CAMERA_MOVES.map((move) => (
+                  <button key={move.id}
+                    onClick={() => setSelectedCameraMove(selectedCameraMove === move.id ? null : move.id)}
+                    disabled={phase === "generating"}
+                    className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all disabled:opacity-50 ${
+                      selectedCameraMove === move.id
+                        ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                        : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"
+                    }`}>
+                    {move.label}
+                  </button>
+                ))}
+              </div>
+              {selectedCameraMove && (
+                <p className="text-xs text-zinc-600 italic">{cameraText}</p>
+              )}
+            </div>
+          )}
 
           {/* I2V upload zone */}
           {isI2V && (
@@ -411,6 +519,40 @@ export default function StudioPage() {
                     ))}
                   </div>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* Reference image — character/style reference for image + T2V */}
+          {!isI2V && !isAudioModel && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Reference image <span className="normal-case font-normal text-zinc-700">(optional)</span></p>
+                {localReferencePreview && (
+                  <button onClick={() => { setReferenceImageUrl(null); setLocalReferencePreview(null); }}
+                    className="text-xs text-zinc-600 hover:text-red-400 transition-colors">Remove</button>
+                )}
+              </div>
+              <input ref={referenceInputRef} type="file" accept="image/*" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleReferenceFile(f); }} />
+              {localReferencePreview ? (
+                <div className="relative rounded-xl overflow-hidden border border-zinc-700 bg-zinc-900 h-28">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={localReferencePreview} alt="Reference" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40 flex items-end p-2">
+                    <span className="text-xs text-zinc-300 bg-black/60 px-2 py-0.5 rounded">Claude will describe this character in your prompt</span>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => referenceInputRef.current?.click()}
+                  className="w-full flex items-center gap-3 border border-dashed border-zinc-800 hover:border-zinc-600 rounded-xl px-4 py-3 text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+                >
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                  </svg>
+                  Upload character or style reference
+                </button>
               )}
             </div>
           )}
