@@ -3,9 +3,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { PRODUCT_NAME, creditsToGBP } from "@/config";
+import { creditsToGBP } from "@/config";
 import { useUser } from "@/context/UserContext";
 import TopUpModal from "@/components/TopUpModal";
+import BuruLogo from "@/components/BuruLogo";
 
 export default function Header() {
   const { balance, monthlySpent, monthlyCap } = useUser();
@@ -25,9 +26,8 @@ export default function Header() {
 
           {/* Left: logo + nav */}
           <div className="flex items-center gap-8">
-            <Link href="/" className="font-bold text-white tracking-tight text-sm flex items-center gap-2">
-              <span className="w-6 h-6 bg-indigo-600 rounded-md flex items-center justify-center text-white text-xs font-bold">B</span>
-              {PRODUCT_NAME}
+            <Link href="/" className="flex items-center text-sm" style={{ textDecoration: "none" }}>
+              <BuruLogo />
             </Link>
 
             <nav className="hidden sm:flex items-center gap-1 text-sm">

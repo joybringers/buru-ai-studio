@@ -15,6 +15,9 @@ const poppins = Poppins({
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://buruai.elmorilx.com";
 
 export const metadata: Metadata = {
+  icons: {
+    icon: "/favicon.svg",
+  },
   title: {
     default: `${PRODUCT_NAME} — AI Image & Video Studio`,
     template: `%s | ${PRODUCT_NAME}`,
