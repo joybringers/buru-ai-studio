@@ -42,7 +42,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async sendVerificationRequest({ identifier, url, provider }) {
         // In development: print the link to the terminal so there's no need for a real email server.
         if (process.env.NODE_ENV !== "production") {
-          console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🔗  Magic link for ${identifier}\n    ${url}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
+          console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nMagic link for ${identifier}\n    ${url}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
           return;
         }
         // Production: send via SMTP (configure EMAIL_SERVER).

@@ -192,7 +192,7 @@ export default function ScriptEditor({ initialData }: Props) {
               href={`/projects/${initialData.id}/bible`}
               className="text-xs bg-[#2BE4FF]/10 hover:bg-[#2BE4FF]/20 text-[#2BE4FF] px-3 py-1 rounded-lg transition-colors whitespace-nowrap"
             >
-              📖 Story Bible →
+              Story Bible →
             </a>
           )}
         </div>
@@ -200,7 +200,7 @@ export default function ScriptEditor({ initialData }: Props) {
         {scenes.length === 0 ? (
           <div className="flex-1 flex items-center justify-center text-[#A8B0D8] text-sm text-center px-8">
             <div>
-              <div className="text-4xl mb-4">🎬</div>
+              <div className="text-4xl mb-4 font-black text-volt opacity-30">S</div>
               <div className="font-medium mb-2">No scenes yet</div>
               <div className="text-xs opacity-70">Chat with the assistant to generate your first scene.</div>
             </div>

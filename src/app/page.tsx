@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -8,10 +8,10 @@ import { CREDIT_PACKS, MODELS, creditsToGBP } from "@/config";
 import RefCapture from "@/components/RefCapture";
 
 const MODES = [
-  { id: "film",  label: "🎬 Film",   href: "/projects" },
-  { id: "image", label: "🖼 Image",  href: "/create/image" },
-  { id: "video", label: "🎥 Video",  href: "/studio" },
-  { id: "audio", label: "🎵 Audio",  href: "/studio?model=stable-audio" },
+  { id: "film",  label: "Film",  href: "/projects" },
+  { id: "image", label: "Image", href: "/create/image" },
+  { id: "video", label: "Video", href: "/studio" },
+  { id: "audio", label: "Audio", href: "/studio?model=stable-audio" },
 ] as const;
 
 type ModeId = (typeof MODES)[number]["id"];
@@ -23,20 +23,172 @@ const SUGGESTIONS = [
 ];
 
 const TOOLS = [
-  { label: "Upscale 4×",  icon: "⬆️", href: "/tools/upscale",    badge: null },
-  { label: "Remove BG",   icon: "✂️", href: "/tools/background", badge: null },
-  { label: "Edit Image",  icon: "🖊",  href: "/tools/inpaint",    badge: null },
-  { label: "Relight",     icon: "💡", href: "/tools/relight",    badge: "NEW" },
-  { label: "Voice Over",  icon: "🎙",  href: "/tools/voiceover",  badge: "NEW" },
-  { label: "Lip Sync",    icon: "🗣",  href: "/tools/lipsync",    badge: "NEW" },
-  { label: "Face Swap",   icon: "🫳",  href: "/tools/faceswap",   badge: "HOT" },
-  { label: "Inspirations",icon: "✨", href: "/inspire",          badge: null },
+  { label: "Upscale 4×",   icon: "↑",  href: "/tools/upscale",    badge: null },
+  { label: "Remove BG",    icon: "✂",  href: "/tools/background", badge: null },
+  { label: "Edit Image",   icon: "✏",  href: "/tools/inpaint",    badge: null },
+  { label: "Relight",      icon: "⊙",  href: "/tools/relight",    badge: "NEW" },
+  { label: "Voice Over",   icon: "◎",  href: "/tools/voiceover",  badge: "NEW" },
+  { label: "Lip Sync",     icon: "◉",  href: "/tools/lipsync",    badge: "NEW" },
+  { label: "Face Swap",    icon: "⬡",  href: "/tools/faceswap",   badge: "HOT" },
+  { label: "Inspirations", icon: "✦",  href: "/inspire",          badge: null },
 ];
+
+const MARQUEE_ROW_1 = [
+  "Kling Pro 2.0", "FLUX 1.1 Pro", "Ideogram 2.0", "Stable Video",
+  "Kokoro TTS", "Stable Audio", "Face Swap Pro", "4× AI Upscale",
+  "Lip Sync AI", "Background Remove", "AI Relight", "Kling Standard",
+];
+const MARQUEE_ROW_2 = [
+  "AI Director", "Story Bible", "Continuity Check", "Script Writer",
+  "Shot Manager", "Storyboard AI", "Export Review", "Scene Planner",
+  "Voice Clone", "Cinematic Grade", "AI Narration", "Film Export",
+];
+
+const SHOWCASE_ITEMS = [
+  {
+    type: "FILM",
+    title: "Lagos Street Musician",
+    sub: "90s short film · AI-scripted & storyboarded",
+    gradient: "linear-gradient(145deg, #1a0533 0%, #2d1b69 40%, #1e3a8a 100%)",
+    accent: "#A88FFF",
+    visual: "film",
+  },
+  {
+    type: "IMAGE",
+    title: "Golden Hour Portrait",
+    sub: "FLUX 1.1 Pro · 4K resolution",
+    gradient: "linear-gradient(145deg, #082f49 0%, #0c4a6e 40%, #0369a1 100%)",
+    accent: "#38bdf8",
+    visual: "image",
+  },
+  {
+    type: "VIDEO",
+    title: "Luxury Product Commercial",
+    sub: "Kling Pro 2.0 · 10 seconds · 1080p",
+    gradient: "linear-gradient(145deg, #172554 0%, #1d4ed8 50%, #2563eb 100%)",
+    accent: "#93c5fd",
+    visual: "video",
+  },
+  {
+    type: "AUDIO",
+    title: "Cinematic Orchestral Score",
+    sub: "Stable Audio · 2 minutes · 44.1 kHz",
+    gradient: "linear-gradient(145deg, #042f2e 0%, #0d9488 50%, #0f766e 100%)",
+    accent: "#2BE4FF",
+    visual: "audio",
+  },
+  {
+    type: "FILM",
+    title: "Afrobeat Music Video",
+    sub: "AI-directed · 3 minutes · Full production pipeline",
+    gradient: "linear-gradient(145deg, #1e1b4b 0%, #3730a3 40%, #4f46e5 100%)",
+    accent: "#c4b5fd",
+    visual: "film",
+  },
+];
+
+function MarqueeStrip({ items, direction }: { items: string[]; direction: "left" | "right" }) {
+  const doubled = [...items, ...items];
+  return (
+    <div className="overflow-hidden">
+      <div
+        className="flex gap-3 w-max"
+        style={{
+          animation: `marquee-${direction} ${direction === "left" ? 32 : 38}s linear infinite`,
+          willChange: "transform",
+        }}
+      >
+        {doubled.map((name, i) => (
+          <span
+            key={i}
+            className="shrink-0 px-4 py-1.5 rounded-pill text-xs font-semibold text-mist whitespace-nowrap"
+            style={{
+              background: "rgba(106,76,255,.10)",
+              border: "1px solid rgba(106,76,255,.18)",
+            }}
+          >
+            {name}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ShowcaseVisual({ visual, accent }: { visual: string; accent: string }) {
+  if (visual === "film") {
+    return (
+      <div className="absolute inset-6 flex flex-col gap-2 opacity-30">
+        {[0, 1, 2].map((row) => (
+          <div key={row} className="flex gap-2 flex-1">
+            {[0, 1, 2, 3].map((col) => (
+              <div key={col} className="flex-1 rounded border opacity-60"
+                style={{ borderColor: accent, background: `${accent}10` }} />
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (visual === "image") {
+    return (
+      <div className="absolute inset-8 rounded-xl opacity-25 border-2"
+        style={{ borderColor: accent, background: `${accent}08` }}>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full border-2 opacity-60" style={{ borderColor: accent }} />
+        </div>
+      </div>
+    );
+  }
+  if (visual === "video") {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center opacity-25">
+        <div className="w-20 h-20 rounded-full border-2 flex items-center justify-center"
+          style={{ borderColor: accent }}>
+          <div className="ml-1 border-y-8 border-l-14 border-y-transparent"
+            style={{ borderLeftColor: accent, width: 0, height: 0,
+              borderTop: "8px solid transparent", borderBottom: "8px solid transparent",
+              borderLeft: `14px solid ${accent}` }} />
+        </div>
+        {/* Scan line */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 opacity-40"
+          style={{
+            background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
+            animation: "scan-line 2.5s linear infinite",
+          }} />
+      </div>
+    );
+  }
+  if (visual === "audio") {
+    return (
+      <div className="absolute inset-0 flex items-end justify-center gap-1 pb-12 opacity-30">
+        {[40, 70, 55, 90, 45, 80, 60, 75, 50, 85, 40, 65, 90, 55, 70, 45, 80].map((h, i) => (
+          <div key={i} className="w-1 rounded-sm"
+            style={{
+              height: h * 0.6,
+              background: accent,
+              animation: `waveform ${0.6 + (i % 5) * 0.15}s ease-in-out infinite`,
+              animationDelay: `${i * 0.07}s`,
+            }} />
+        ))}
+      </div>
+    );
+  }
+  return null;
+}
 
 export default function Home() {
   const router = useRouter();
   const [mode, setMode] = useState<ModeId>("film");
   const [prompt, setPrompt] = useState("");
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide((s) => (s + 1) % SHOWCASE_ITEMS.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, []);
 
   const submit = () => {
     const m = MODES.find((x) => x.id === mode);
@@ -57,6 +209,29 @@ export default function Home() {
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}
       <section className="breakout -mt-8 relative flex flex-col items-center justify-center min-h-screen px-4 overflow-hidden bg-night">
+
+        {/* Animated floating blobs */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div style={{
+            position: "absolute", top: "12%", left: "8%",
+            width: 380, height: 380, borderRadius: "50%",
+            background: "rgba(106,76,255,.13)", filter: "blur(90px)",
+            animation: "float-blob 9s ease-in-out infinite",
+          }} />
+          <div style={{
+            position: "absolute", top: "25%", right: "6%",
+            width: 300, height: 300, borderRadius: "50%",
+            background: "rgba(47,107,255,.10)", filter: "blur(80px)",
+            animation: "float-blob 12s ease-in-out infinite reverse",
+          }} />
+          <div style={{
+            position: "absolute", bottom: "18%", left: "28%",
+            width: 240, height: 240, borderRadius: "50%",
+            background: "rgba(43,228,255,.06)", filter: "blur(70px)",
+            animation: "float-blob 15s ease-in-out infinite",
+            animationDelay: "3s",
+          }} />
+        </div>
 
         {/* Volt-wash radial glow at top */}
         <div
@@ -152,8 +327,101 @@ export default function Home() {
           style={{ background: "linear-gradient(to top, #090B1A, transparent)" }} />
       </section>
 
-      {/* ── QUICK-START CARDS ──────────────────────────────────────────── */}
+      {/* ── MODEL MARQUEE ──────────────────────────────────────────────── */}
+      <div className="breakout py-5 overflow-hidden"
+        style={{ background: "#0D0F20", borderTop: "1px solid #1E2140", borderBottom: "1px solid #1E2140" }}>
+        <div className="space-y-3">
+          <MarqueeStrip items={MARQUEE_ROW_1} direction="left" />
+          <MarqueeStrip items={MARQUEE_ROW_2} direction="right" />
+        </div>
+      </div>
+
+      {/* ── SHOWCASE CAROUSEL ──────────────────────────────────────────── */}
       <section className="pt-20 pb-10 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-xs font-bold tracking-[0.18em] text-edge uppercase mb-3">Showcase</p>
+            <h2 className="font-display font-bold text-white-hot tracking-tight"
+              style={{ fontSize: "clamp(1.6rem, 4vw, 2.2rem)" }}>
+              See what creators make
+            </h2>
+          </div>
+
+          {/* Carousel */}
+          <div className="relative rounded-2xl overflow-hidden" style={{ height: 320 }}>
+            {SHOWCASE_ITEMS.map((item, i) => (
+              <div
+                key={i}
+                className="absolute inset-0 transition-opacity duration-700"
+                style={{
+                  opacity: i === activeSlide ? 1 : 0,
+                  background: item.gradient,
+                  pointerEvents: i === activeSlide ? "auto" : "none",
+                }}
+              >
+                {/* Decorative visual element */}
+                <ShowcaseVisual visual={item.visual} accent={item.accent} />
+
+                {/* Top-right type tag */}
+                <div className="absolute top-5 right-5">
+                  <span
+                    className="text-[10px] font-black tracking-[0.2em] px-3 py-1 rounded-pill"
+                    style={{
+                      background: `${item.accent}22`,
+                      border: `1px solid ${item.accent}44`,
+                      color: item.accent,
+                    }}
+                  >
+                    {item.type}
+                  </span>
+                </div>
+
+                {/* Bottom overlay */}
+                <div className="absolute bottom-0 left-0 right-0 p-6"
+                  style={{ background: "linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 100%)" }}>
+                  <p className="font-display font-bold text-white-hot text-xl">{item.title}</p>
+                  <p className="text-sm mt-1" style={{ color: item.accent, opacity: 0.85 }}>{item.sub}</p>
+                </div>
+
+                {/* Top gradient line */}
+                <div className="absolute top-0 left-0 right-0 h-px"
+                  style={{ background: `linear-gradient(90deg, transparent, ${item.accent}55, transparent)` }} />
+              </div>
+            ))}
+
+            {/* Progress bar */}
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10">
+              <div
+                className="h-full transition-all duration-300"
+                style={{
+                  width: `${((activeSlide + 1) / SHOWCASE_ITEMS.length) * 100}%`,
+                  background: SHOWCASE_ITEMS[activeSlide].accent,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Dot navigation */}
+          <div className="flex justify-center gap-2 mt-5">
+            {SHOWCASE_ITEMS.map((item, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveSlide(i)}
+                className="rounded-pill transition-all duration-300"
+                style={{
+                  width: i === activeSlide ? 24 : 8,
+                  height: 8,
+                  background: i === activeSlide ? item.accent : "rgba(168,176,216,.25)",
+                }}
+                aria-label={`Go to slide ${i + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── QUICK-START CARDS ──────────────────────────────────────────── */}
+      <section className="pb-10 px-4">
         <div className="max-w-4xl mx-auto">
           <p className="text-center text-xs font-bold tracking-[0.18em] text-edge uppercase mb-6">
             Start from a template
@@ -161,7 +429,8 @@ export default function Home() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
             <Link href="/templates" className="v-card v-card-film flex flex-col gap-3" style={{ textDecoration: "none" }}>
-              <span className="text-3xl">🎬</span>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold"
+                style={{ background: "rgba(106,76,255,.2)", color: "#A88FFF" }}>F</div>
               <div>
                 <p className="font-display font-semibold text-white-hot text-sm">Short Film</p>
                 <p className="text-mist text-xs mt-1">Script → Storyboard → Render</p>
@@ -170,7 +439,8 @@ export default function Home() {
             </Link>
 
             <Link href="/create/image" className="v-card flex flex-col gap-3" style={{ textDecoration: "none" }}>
-              <span className="text-3xl">🖼</span>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold"
+                style={{ background: "rgba(47,107,255,.2)", color: "#93c5fd" }}>I</div>
               <div>
                 <p className="font-display font-semibold text-white-hot text-sm">Image</p>
                 <p className="text-mist text-xs mt-1">FLUX, Ideogram and more</p>
@@ -179,7 +449,8 @@ export default function Home() {
             </Link>
 
             <Link href="/studio" className="v-card flex flex-col gap-3" style={{ textDecoration: "none" }}>
-              <span className="text-3xl">🎥</span>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold"
+                style={{ background: "rgba(43,228,255,.12)", color: "#2BE4FF" }}>V</div>
               <div>
                 <p className="font-display font-semibold text-white-hot text-sm">Video</p>
                 <p className="text-mist text-xs mt-1">Kling Pro, text to video</p>
@@ -188,7 +459,8 @@ export default function Home() {
             </Link>
 
             <Link href="/tools/voiceover" className="v-card flex flex-col gap-3" style={{ textDecoration: "none" }}>
-              <span className="text-3xl">🎵</span>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold"
+                style={{ background: "rgba(196,181,253,.12)", color: "#c4b5fd" }}>A</div>
               <div>
                 <p className="font-display font-semibold text-white-hot text-sm">Voice &amp; Audio</p>
                 <p className="text-mist text-xs mt-1">Voiceover, Lip Sync, Clone</p>
@@ -209,7 +481,8 @@ export default function Home() {
             {TOOLS.map((tool) => (
               <Link key={tool.label} href={tool.href} className="v-card flex items-center gap-3 !p-3"
                 style={{ textDecoration: "none" }}>
-                <span className="text-xl flex-shrink-0">{tool.icon}</span>
+                <span className="text-base flex-shrink-0 font-bold"
+                  style={{ color: "#6A4CFF", width: 20, textAlign: "center" }}>{tool.icon}</span>
                 <span className="text-white-hot text-xs font-medium flex-1">{tool.label}</span>
                 {tool.badge && (
                   <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-pill tracking-wider flex-shrink-0"
@@ -362,7 +635,13 @@ export default function Home() {
             <div className="absolute top-0 left-0 right-0 h-px"
               style={{ background: "linear-gradient(90deg, transparent, rgba(106,76,255,.55), transparent)" }} />
 
-            <h2 className="font-display font-bold text-white-hot tracking-tight mb-4"
+            {/* Background blobs */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div style={{ position: "absolute", top: "30%", left: "15%", width: 200, height: 200, borderRadius: "50%", background: "rgba(106,76,255,.08)", filter: "blur(60px)", animation: "float-blob 10s ease-in-out infinite" }} />
+              <div style={{ position: "absolute", top: "20%", right: "15%", width: 180, height: 180, borderRadius: "50%", background: "rgba(47,107,255,.07)", filter: "blur(55px)", animation: "float-blob 13s ease-in-out infinite reverse" }} />
+            </div>
+
+            <h2 className="relative font-display font-bold text-white-hot tracking-tight mb-4"
               style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", lineHeight: 1.2 }}>
               Ready to create<br />
               <span style={{
@@ -373,12 +652,12 @@ export default function Home() {
               </span>
             </h2>
 
-            <p className="text-mist text-sm max-w-sm mx-auto leading-relaxed mb-8">
+            <p className="relative text-mist text-sm max-w-sm mx-auto leading-relaxed mb-8">
               Sign in with your email — no password, no card required.
               Get 50 free credits instantly.
             </p>
 
-            <Link href="/auth/signin" className="v-btn v-btn-primary"
+            <Link href="/auth/signin" className="v-btn v-btn-primary relative"
               style={{ textDecoration: "none", fontSize: 15, padding: "14px 40px" }}>
               Start creating free →
             </Link>

@@ -22,8 +22,8 @@ interface Project {
 }
 
 const STAGE_ICONS: Record<string, string> = {
-  script: "✍️", bible: "📖", storyboard: "🎞️",
-  video: "🎬", voice: "🎙️", music: "🎵", export: "📤",
+  script: "S", bible: "B", storyboard: "SB",
+  video: "V", voice: "VO", music: "M", export: "EX",
 };
 
 function creditsToUSD(c: number) {
@@ -86,7 +86,7 @@ export default function QuoteClient({ project, creditBalance }: { project: Proje
       {/* Locked banner + Start Writing CTA */}
       {isLocked && lockedUntil && (
         <div className="bg-[#022B1E] border border-emerald-800 rounded-xl p-4 mb-6 flex items-start gap-3">
-          <span className="text-emerald-400 text-xl mt-0.5">🔒</span>
+          <span className="text-emerald-400 text-xl mt-0.5 font-bold">■</span>
           <div className="flex-1">
             <p className="text-emerald-300 font-semibold text-sm">Quote locked — price guaranteed</p>
             <p className="text-emerald-700 text-xs mt-0.5">
@@ -97,7 +97,7 @@ export default function QuoteClient({ project, creditBalance }: { project: Proje
             href={`/projects/${project.id}/script`}
             className="flex-shrink-0 bg-[#6A4CFF] hover:bg-[#5636F0] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
           >
-            ✍️ Start Writing
+            Start Writing →
           </a>
         </div>
       )}

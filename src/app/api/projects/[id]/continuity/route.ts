@@ -45,7 +45,7 @@ Respond in this format:
 **Overall: PASS / MINOR ISSUES / MAJOR ISSUES**
 
 ### Issues Found
-(list each issue as: 🔴 MAJOR / 🟡 MINOR — Scene X — description)
+(list each issue as: [MAJOR] or [MINOR] — Scene X — description)
 (write "None" if no issues)
 
 ### Suggestions

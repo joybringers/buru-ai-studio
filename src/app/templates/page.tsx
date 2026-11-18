@@ -49,7 +49,10 @@ export default function TemplatesPage() {
               disabled={!!creating}
               className="text-left bg-[#121530] border border-[#1E2140] hover:border-[#6A4CFF]/60 rounded-2xl p-5 transition-all group disabled:opacity-60"
             >
-              <div className="text-3xl mb-3">{tpl.icon}</div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl font-bold mb-3"
+              style={{ background: "rgba(106,76,255,.15)", color: "#A88FFF", border: "1px solid rgba(106,76,255,.2)" }}>
+              {tpl.icon}
+            </div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-semibold text-[#F2F6FF] group-hover:text-white">{tpl.title}</span>
                 <span className="text-xs bg-[#1E2140] text-[#A8B0D8] px-1.5 py-0.5 rounded-full">{tpl.genre}</span>
@@ -73,7 +76,10 @@ export default function TemplatesPage() {
             onClick={() => router.push("/projects")}
             className="text-left bg-[#121530] border border-dashed border-[#1E2140] hover:border-[#6A4CFF]/40 rounded-2xl p-5 transition-all group"
           >
-            <div className="text-3xl mb-3">🎬</div>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl font-bold mb-3"
+              style={{ background: "rgba(106,76,255,.08)", color: "#7B84B5", border: "1px dashed rgba(106,76,255,.2)" }}>
+              +
+            </div>
             <div className="font-semibold text-[#F2F6FF] mb-1">Blank Project</div>
             <p className="text-xs text-[#A8B0D8] mb-3">Start from scratch with your own idea.</p>
             <span className="text-xs text-[#A8B0D8] group-hover:text-[#F2F6FF]">Go to My Films →</span>

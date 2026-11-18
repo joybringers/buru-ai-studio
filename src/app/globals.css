@@ -236,3 +236,29 @@
   background-size: 200% 200%;
   animation: gradient-shift 5s ease infinite;
 }
+
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes marquee-right {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes float-blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(28px, -18px) scale(1.04); }
+  66%       { transform: translate(-14px, 14px) scale(0.97); }
+}
+
+@keyframes scan-line {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(400%); }
+}
+
+@keyframes waveform {
+  0%, 100% { transform: scaleY(0.4); }
+  50%       { transform: scaleY(1); }
+}

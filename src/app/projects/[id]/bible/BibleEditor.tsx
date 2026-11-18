@@ -85,7 +85,7 @@ export default function BibleEditor({
         <Link href={`/projects/${projectId}/script`} className="text-[#A8B0D8] hover:text-[#F2F6FF] text-sm">← Script</Link>
         <div className="flex-1">
           <div className="text-xs text-[#A8B0D8]">{projectTitle}</div>
-          <div className="text-sm font-semibold text-[#2BE4FF]">📖 Story Bible</div>
+          <div className="text-sm font-semibold text-[#2BE4FF]">Story Bible</div>
         </div>
         <div className="flex items-center gap-3">
           {saving && <span className="text-xs text-[#A8B0D8]">Saving…</span>}
@@ -94,7 +94,7 @@ export default function BibleEditor({
               href={`/projects/${projectId}/storyboard`}
               className="text-xs bg-[#6A4CFF] hover:bg-[#5636F0] text-white px-4 py-2 rounded-lg transition-colors"
             >
-              🎞️ Next: Storyboard →
+              Next: Storyboard →
             </Link>
           )}
           <button
@@ -103,7 +103,7 @@ export default function BibleEditor({
             title={!hasScript ? "Write your script first" : ""}
             className="text-xs bg-[#2F6BFF] hover:bg-[#2459E0] disabled:opacity-40 text-white px-4 py-2 rounded-lg transition-colors"
           >
-            {generating ? "Generating…" : "✨ Generate from Script"}
+            {generating ? "Generating…" : "Generate from Script"}
           </button>
         </div>
       </div>
@@ -124,10 +124,10 @@ export default function BibleEditor({
             style: null,
           };
           const labels: Record<Tab, string> = {
-            characters: "👤 Characters",
-            locations: "📍 Locations",
-            props: "🎭 Props",
-            style: "🎨 Style",
+            characters: "Characters",
+            locations: "Locations",
+            props: "Props",
+            style: "Style",
           };
           return (
             <button

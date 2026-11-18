@@ -11,11 +11,11 @@ type Stats = {
 };
 
 const STEPS: { key: keyof Checklist; label: string; icon: string; href: (id: string) => string }[] = [
-  { key: "quote",      label: "Film quote accepted",    icon: "💰", href: (id) => `/projects/${id}/quote` },
-  { key: "script",     label: "Script written",         icon: "✍️", href: (id) => `/projects/${id}/script` },
-  { key: "bible",      label: "Story bible populated",  icon: "📖", href: (id) => `/projects/${id}/bible` },
-  { key: "storyboard", label: "All shots approved",     icon: "🎞️", href: (id) => `/projects/${id}/storyboard` },
-  { key: "timeline",   label: "Timeline locked",        icon: "🎬", href: (id) => `/projects/${id}/timeline` },
+  { key: "quote",      label: "Film quote accepted",    icon: "£",  href: (id) => `/projects/${id}/quote` },
+  { key: "script",     label: "Script written",         icon: "S",  href: (id) => `/projects/${id}/script` },
+  { key: "bible",      label: "Story bible populated",  icon: "B",  href: (id) => `/projects/${id}/bible` },
+  { key: "storyboard", label: "All shots approved",     icon: "SB", href: (id) => `/projects/${id}/storyboard` },
+  { key: "timeline",   label: "Timeline locked",        icon: "TL", href: (id) => `/projects/${id}/timeline` },
 ];
 
 export default function ExportPanel({
@@ -97,7 +97,7 @@ export default function ExportPanel({
         <Link href={`/projects/${projectId}/timeline`} className="text-[#A8B0D8] hover:text-[#F2F6FF] text-sm">← Timeline</Link>
         <div className="flex-1">
           <div className="text-xs text-[#A8B0D8] truncate">{projectTitle}</div>
-          <div className="text-sm font-semibold text-[#2BE4FF]">📤 Export & Review</div>
+          <div className="text-sm font-semibold text-[#2BE4FF]">Export &amp; Review</div>
         </div>
         <Link href="/projects" className="text-xs text-[#A8B0D8] hover:text-[#F2F6FF]">My Films</Link>
       </div>
@@ -151,7 +151,7 @@ export default function ExportPanel({
         <div className="bg-[#121530] border border-[#1E2140] rounded-xl p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <h2 className="text-sm font-semibold text-[#F2F6FF] mb-1">🤖 AI Content Label</h2>
+              <h2 className="text-sm font-semibold text-[#F2F6FF] mb-1">AI Content Label</h2>
               <p className="text-xs text-[#A8B0D8] leading-relaxed">
                 Acknowledge that this project was created with AI assistance. Required for publication on many platforms.
                 This label will appear on your review page.
@@ -181,7 +181,7 @@ export default function ExportPanel({
         <div className="bg-[#121530] border border-[#1E2140] rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-sm font-semibold text-[#F2F6FF]">🔍 Continuity Check</h2>
+              <h2 className="text-sm font-semibold text-[#F2F6FF]">Continuity Check</h2>
               <p className="text-xs text-[#A8B0D8] mt-0.5">AI analysis of your script for plot holes and inconsistencies.</p>
             </div>
             <button
@@ -266,7 +266,7 @@ export default function ExportPanel({
 
         {/* Next: render shots (placeholder) */}
         <div className={`rounded-xl p-5 border ${allReady ? "border-[#6A4CFF]/40 bg-[#6A4CFF]/10" : "border-[#1E2140] bg-[#121530]"}`}>
-          <h2 className="text-sm font-semibold text-[#F2F6FF] mb-1">🎬 Render Shots</h2>
+          <h2 className="text-sm font-semibold text-[#F2F6FF] mb-1">Render Shots</h2>
           <p className="text-xs text-[#A8B0D8] mb-4">
             {allReady
               ? "Your film is ready. Submit each shot to the AI video renderer (Kling) to generate video clips."

@@ -129,7 +129,7 @@ export default function StoryboardGrid({
         <Link href={`/projects/${projectId}/bible`} className="text-[#A8B0D8] hover:text-[#F2F6FF] text-sm">← Bible</Link>
         <div className="flex-1 min-w-0">
           <div className="text-xs text-[#A8B0D8] truncate">{projectTitle}</div>
-          <div className="text-sm font-semibold text-[#2F6BFF]">🎞️ Storyboard</div>
+          <div className="text-sm font-semibold text-[#2F6BFF]">Storyboard</div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {saving && <span className="text-xs text-[#A8B0D8]">Saving…</span>}
@@ -147,7 +147,7 @@ export default function StoryboardGrid({
           {shots.length > 0 && approvedCount === shots.length && (
             <Link href={`/projects/${projectId}/timeline`}
               className="text-xs bg-[#6A4CFF] hover:bg-[#5636F0] text-white px-4 py-1.5 rounded-lg transition-colors">
-              🎬 Timeline →
+              Timeline →
             </Link>
           )}
           <button onClick={generate} disabled={generating || !hasScript}
@@ -187,12 +187,12 @@ export default function StoryboardGrid({
           {shots.length === 0 ? (
             <div className="flex items-center justify-center h-full text-center text-[#A8B0D8]">
               <div>
-                <div className="text-5xl mb-4">🎞️</div>
+                <div className="text-5xl mb-4 font-black text-volt opacity-20">SB</div>
                 <div className="font-medium mb-2">No shots yet</div>
                 <div className="text-xs opacity-70 mb-6">Generate shots from your script, or add them manually per scene.</div>
                 <button onClick={generate} disabled={generating || !hasScript}
                   className="text-sm bg-[#2F6BFF] hover:bg-[#2459E0] disabled:opacity-40 text-white px-6 py-3 rounded-xl transition-colors">
-                  {generating ? "Generating…" : "✨ Generate shots from script"}
+                  {generating ? "Generating…" : "Generate shots from script"}
                 </button>
               </div>
             </div>

@@ -138,7 +138,7 @@ export default function TimelineEditor({
         <Link href={`/projects/${projectId}/storyboard`} className="text-[#A8B0D8] hover:text-[#F2F6FF] text-sm">← Storyboard</Link>
         <div className="flex-1 min-w-0">
           <div className="text-xs text-[#A8B0D8] truncate">{projectTitle}</div>
-          <div className="text-sm font-semibold text-[#2BE4FF]">🎬 Timeline</div>
+          <div className="text-sm font-semibold text-[#2BE4FF]">Timeline</div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {saving && <span className="text-xs text-[#A8B0D8]">Saving…</span>}
@@ -147,17 +147,17 @@ export default function TimelineEditor({
           </span>
           {isLocked ? (
             <>
-              <span className="text-xs bg-emerald-900/40 text-emerald-400 px-3 py-1 rounded-lg">🔒 Locked</span>
+              <span className="text-xs bg-emerald-900/40 text-emerald-400 px-3 py-1 rounded-lg">Locked</span>
               <button onClick={unlock} className="text-xs text-[#A8B0D8] hover:text-[#F2F6FF] transition-colors">Unlock</button>
               <Link href={`/projects/${projectId}/export`}
                 className="text-xs bg-[#6A4CFF] hover:bg-[#5636F0] text-white px-4 py-1.5 rounded-lg transition-colors">
-                📤 Export →
+                Export →
               </Link>
             </>
           ) : (
             <button onClick={lock} disabled={locking || orderedShots.length === 0}
               className="text-xs bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 text-white px-4 py-1.5 rounded-lg transition-colors">
-              {locking ? "Locking…" : "🔒 Lock Timeline"}
+              {locking ? "Locking…" : "Lock Timeline"}
             </button>
           )}
         </div>
@@ -202,7 +202,7 @@ export default function TimelineEditor({
         {/* Voice track */}
         <div>
           <div className="flex items-center gap-3 mb-3">
-            <h2 className="text-xs font-semibold text-[#A8B0D8] uppercase tracking-wide">🎙 Voice track</h2>
+            <h2 className="text-xs font-semibold text-[#A8B0D8] uppercase tracking-wide">Voice track</h2>
             {!isLocked && (
               <button onClick={addVoiceClip}
                 className="text-xs text-[#6A4CFF] hover:text-[#A88FFF] transition-colors">+ Add clip</button>
@@ -228,7 +228,7 @@ export default function TimelineEditor({
         {/* Music track */}
         <div>
           <div className="flex items-center gap-3 mb-3">
-            <h2 className="text-xs font-semibold text-[#A8B0D8] uppercase tracking-wide">🎵 Music track</h2>
+            <h2 className="text-xs font-semibold text-[#A8B0D8] uppercase tracking-wide">Music track</h2>
             {!isLocked && (
               <button onClick={addMusicClip}
                 className="text-xs text-[#6A4CFF] hover:text-[#A88FFF] transition-colors">+ Add clip</button>
@@ -343,7 +343,7 @@ function VoiceClipRow({ clip, disabled, onChange, onDelete }: {
 }) {
   return (
     <div className="flex items-center gap-3 bg-[#121530] border border-[#1E2140] rounded-xl px-4 py-2">
-      <span className="text-sm">🎙</span>
+      <span className="text-sm font-bold text-volt opacity-60">VO</span>
       <input className="flex-1 bg-transparent text-sm text-[#F2F6FF] outline-none" disabled={disabled}
         value={clip.label} onChange={(e) => onChange({ ...clip, label: e.target.value })} placeholder="Clip label" />
       <input className="w-24 bg-[#1E2140] text-xs text-[#F2F6FF] rounded-lg px-2 py-1 outline-none" disabled={disabled}
@@ -366,7 +366,7 @@ function MusicClipRow({ clip, disabled, onChange, onDelete }: {
 }) {
   return (
     <div className="flex items-center gap-3 bg-[#121530] border border-[#1E2140] rounded-xl px-4 py-2">
-      <span className="text-sm">🎵</span>
+      <span className="text-sm font-bold text-arc opacity-60">MU</span>
       <input className="flex-1 bg-transparent text-sm text-[#F2F6FF] outline-none" disabled={disabled}
         value={clip.label} onChange={(e) => onChange({ ...clip, label: e.target.value })} placeholder="Music description / mood" />
       <span className="text-xs text-[#A8B0D8]">@</span>

@@ -43,7 +43,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
           <span>{shots.length} shots</span>
           <span>·</span>
           <span>{totalDuration}s total</span>
-          {project.timeline?.lockedAt && <><span>·</span><span className="text-emerald-400">🔒 Timeline locked</span></>}
+          {project.timeline?.lockedAt && <><span>·</span><span className="text-emerald-400">Timeline locked</span></>}
         </div>
       </div>
 
@@ -52,7 +52,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
         {/* Characters */}
         {characters.length > 0 && (
           <section>
-            <h2 className="text-xs font-semibold text-[#A8B0D8] uppercase tracking-wide mb-4">👤 Characters</h2>
+            <h2 className="text-xs font-semibold text-[#A8B0D8] uppercase tracking-wide mb-4">Characters</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {characters.map((c) => (
                 <div key={c.id} className="bg-[#121530] border border-[#1E2140] rounded-xl p-4">
@@ -72,7 +72,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
         {/* Locations */}
         {locations.length > 0 && (
           <section>
-            <h2 className="text-xs font-semibold text-[#A8B0D8] uppercase tracking-wide mb-4">📍 Locations</h2>
+            <h2 className="text-xs font-semibold text-[#A8B0D8] uppercase tracking-wide mb-4">Locations</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {locations.map((l) => (
                 <div key={l.id} className="bg-[#121530] border border-[#1E2140] rounded-xl p-4">
@@ -88,7 +88,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
         {/* Script */}
         {scenes.length > 0 && (
           <section>
-            <h2 className="text-xs font-semibold text-[#A8B0D8] uppercase tracking-wide mb-4">✍️ Script</h2>
+            <h2 className="text-xs font-semibold text-[#A8B0D8] uppercase tracking-wide mb-4">Script</h2>
             <div className="space-y-6">
               {scenes.map((scene, i) => (
                 <div key={scene.id} className="bg-[#121530] border border-[#1E2140] rounded-xl p-5">
@@ -113,7 +113,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
         {/* Shot list */}
         {orderedShots.length > 0 && (
           <section>
-            <h2 className="text-xs font-semibold text-[#A8B0D8] uppercase tracking-wide mb-4">🎞️ Shot List</h2>
+            <h2 className="text-xs font-semibold text-[#A8B0D8] uppercase tracking-wide mb-4">Shot List</h2>
             <div className="space-y-2">
               {orderedShots.map((shot, i) => (
                 <div key={shot.id} className="flex items-start gap-3 bg-[#121530] border border-[#1E2140] rounded-xl px-4 py-3">
