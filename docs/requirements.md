@@ -47,7 +47,8 @@ Last updated: 2026-11-18
 | Item | Status |
 |------|--------|
 | fal.ai abstraction | ✅ |
-| Quality tiers (Draft 720p / Standard 1080p / Cinema) | ❌ |
+| Quality tiers (Draft / Standard / Cinema) for image models | ✅ Done 2026-11-18 |
+| Quality tiers for video (720p Standard / 1080p Cinema) via Kling standard/pro | ✅ Done 2026-11-18 |
 | Provider switching from admin console | ❌ |
 | Error/retry routing to equivalent provider | ❌ |
 | Fallback provider (beyond fal.ai) | ❌ |
