@@ -9,6 +9,7 @@ export default function SignInPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [sentTo, setSentTo] = useState("");
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
 
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
@@ -79,10 +80,26 @@ export default function SignInPage() {
               </p>
             </div>
 
+            {/* Age confirmation */}
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={ageConfirmed}
+                onChange={(e) => setAgeConfirmed(e.target.checked)}
+                className="mt-0.5 w-4 h-4 shrink-0 accent-indigo-500"
+              />
+              <span className="text-xs text-[#A8B0D8] group-hover:text-[#F2F6FF] transition-colors leading-relaxed">
+                I confirm I am 18 or older and accept the{" "}
+                <a href="/terms" className="text-[#7B84B5] hover:text-[#A8B0D8] underline underline-offset-2" onClick={(e) => e.stopPropagation()}>Terms</a>
+                {" "}and{" "}
+                <a href="/privacy" className="text-[#7B84B5] hover:text-[#A8B0D8] underline underline-offset-2" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>
+              </span>
+            </label>
+
             {/* Google */}
             <button
               onClick={handleGoogleSignIn}
-              disabled={googleLoading}
+              disabled={googleLoading || !ageConfirmed}
               className="w-full flex items-center justify-center gap-3 bg-white hover:bg-[#F2F6FF] text-[#090B1A] font-semibold text-sm py-3.5 rounded-full transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {googleLoading ? (
@@ -123,7 +140,7 @@ export default function SignInPage() {
               </div>
               <button
                 type="submit"
-                disabled={loading || !email.trim()}
+                disabled={loading || !email.trim() || !ageConfirmed}
                 className="w-full py-3.5 rounded-full text-sm font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white"
                 style={{
                   background: loading || !email.trim()
@@ -147,12 +164,6 @@ export default function SignInPage() {
               No password to remember. We email you a one-time link.
             </p>
 
-            <p className="text-xs text-[#4A5280] leading-relaxed">
-              By continuing you agree to our{" "}
-              <a href="/terms" className="text-[#7B84B5] hover:text-[#A8B0D8] transition-colors underline-offset-2 underline">Terms</a>
-              {" "}and{" "}
-              <a href="/privacy" className="text-[#7B84B5] hover:text-[#A8B0D8] transition-colors underline-offset-2 underline">Privacy Policy</a>.
-            </p>
           </div>
         )}
       </div>
