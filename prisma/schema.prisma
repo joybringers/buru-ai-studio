@@ -16,6 +16,8 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
+  phone         String?   @unique
+  phoneVerified DateTime?
   createdAt     DateTime  @default(now())
   creditBalance Int       @default(0)
 
@@ -25,6 +27,17 @@ model User {
   jobs     Job[]
   assets   Asset[]
   projects Project[]
+}
+
+model PhoneOtp {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  expires   DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
 }
 
 model Account {

@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Nodemailer from "next-auth/providers/nodemailer";
 import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
 import { createTransport } from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "./auth.config";
@@ -32,6 +33,55 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   providers: [
+    Credentials({
+      id: "phone-otp",
+      name: "Phone OTP",
+      credentials: {
+        phone: { label: "Phone", type: "text" },
+        code:  { label: "Code",  type: "text" },
+      },
+      async authorize(credentials) {
+        const phone = (credentials?.phone as string | undefined)?.trim();
+        const code  = (credentials?.code  as string | undefined)?.trim();
+        if (!phone || !code) return null;
+
+        const otp = await prisma.phoneOtp.findFirst({
+          where: { phone, code, expires: { gt: new Date() }, attempts: { lt: 5 } },
+        });
+
+        if (!otp) {
+          await prisma.phoneOtp.updateMany({
+            where: { phone, expires: { gt: new Date() } },
+            data: { attempts: { increment: 1 } },
+          });
+          return null;
+        }
+
+        await prisma.phoneOtp.delete({ where: { id: otp.id } });
+
+        let user = await prisma.user.findUnique({ where: { phone } });
+        const isNew = !user;
+
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              phone,
+              phoneVerified: new Date(),
+              email: `${phone.replace(/\+/g, "")}@phone.burustudio.internal`,
+              name: phone,
+            },
+          });
+        } else if (!user.phoneVerified) {
+          await prisma.user.update({ where: { id: user.id }, data: { phoneVerified: new Date() } });
+        }
+
+        if (isNew) {
+          await creditUser(user.id, WELCOME_CREDITS, "welcome_bonus");
+        }
+
+        return { id: user.id, email: user.email, name: user.name };
+      },
+    }),
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",

@@ -11,9 +11,46 @@ export default function SignInPage() {
   const [sentTo, setSentTo] = useState("");
   const [ageConfirmed, setAgeConfirmed] = useState(false);
 
+  // Phone OTP state
+  const [tab, setTab] = useState<"email" | "phone">("email");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [phoneLoading, setPhoneLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
+
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
     await signIn("google", { callbackUrl: "/studio" });
+  }
+
+  async function handleSendOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setPhoneLoading(true);
+    setPhoneError("");
+    const res = await fetch("/api/auth/phone/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone }),
+    });
+    const data = await res.json() as { error?: string };
+    setPhoneLoading(false);
+    if (!res.ok) { setPhoneError(data.error ?? "Failed to send code"); return; }
+    setOtpSent(true);
+  }
+
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setVerifyLoading(true);
+    setPhoneError("");
+    const result = await signIn("phone-otp", { phone, code: otp, redirect: false });
+    if (result?.error) {
+      setPhoneError("Invalid or expired code — please try again.");
+      setVerifyLoading(false);
+      return;
+    }
+    window.location.href = "/studio";
   }
 
   async function handleEmailSubmit(e: React.FormEvent) {
@@ -121,48 +158,150 @@ export default function SignInPage() {
             {/* Divider */}
             <div className="relative flex items-center gap-3">
               <div className="flex-1 h-px bg-[#1E2140]" />
-              <span className="text-xs text-[#4A5280] font-medium whitespace-nowrap">or continue with email</span>
+              <span className="text-xs text-[#4A5280] font-medium whitespace-nowrap">or continue with</span>
               <div className="flex-1 h-px bg-[#1E2140]" />
             </div>
 
-            {/* Email form */}
-            <form onSubmit={handleEmailSubmit} className="space-y-3">
-              <div>
-                <label className="text-xs text-[#A8B0D8] block mb-1.5">Email</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full rounded-xl bg-[#121530] border border-[#1E2140] focus:border-[#6A4CFF] text-[#F2F6FF] placeholder-[#4A5280] px-4 py-3 text-sm focus:outline-none transition-colors"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading || !email.trim() || !ageConfirmed}
-                className="w-full py-3.5 rounded-full text-sm font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white"
-                style={{
-                  background: loading || !email.trim()
-                    ? "#1E2140"
-                    : "linear-gradient(100deg, #6A4CFF 0%, #2F6BFF 100%)",
-                }}
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
-                      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                    </svg>
-                    Sending…
-                  </span>
-                ) : "Send magic link →"}
-              </button>
-            </form>
+            {/* Email / Phone tabs */}
+            <div className="flex rounded-xl overflow-hidden border border-[#1E2140]" style={{ background: "#0E1128" }}>
+              {(["email", "phone"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => { setTab(t); setPhoneError(""); setOtpSent(false); setOtp(""); }}
+                  className="flex-1 py-2 text-xs font-semibold transition-all"
+                  style={tab === t ? {
+                    background: "linear-gradient(100deg, #6A4CFF, #2F6BFF)",
+                    color: "#F2F6FF",
+                  } : { color: "#4A5280" }}
+                >
+                  {t === "email" ? "Email" : "📱 Mobile (NG)"}
+                </button>
+              ))}
+            </div>
 
-            <p className="text-xs text-[#4A5280] leading-relaxed">
-              No password to remember. We email you a one-time link.
-            </p>
+            {tab === "email" ? (
+              <>
+                {/* Email form */}
+                <form onSubmit={handleEmailSubmit} className="space-y-3">
+                  <div>
+                    <label className="text-xs text-[#A8B0D8] block mb-1.5">Email</label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className="w-full rounded-xl bg-[#121530] border border-[#1E2140] focus:border-[#6A4CFF] text-[#F2F6FF] placeholder-[#4A5280] px-4 py-3 text-sm focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading || !email.trim() || !ageConfirmed}
+                    className="w-full py-3.5 rounded-full text-sm font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                    style={{
+                      background: loading || !email.trim()
+                        ? "#1E2140"
+                        : "linear-gradient(100deg, #6A4CFF 0%, #2F6BFF 100%)",
+                    }}
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
+                          <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                        </svg>
+                        Sending…
+                      </span>
+                    ) : "Send magic link →"}
+                  </button>
+                </form>
+                <p className="text-xs text-[#4A5280] leading-relaxed">
+                  No password to remember. We email you a one-time link.
+                </p>
+              </>
+            ) : (
+              /* Phone OTP form */
+              <div className="space-y-3">
+                {!otpSent ? (
+                  <form onSubmit={handleSendOtp} className="space-y-3">
+                    <div>
+                      <label className="text-xs text-[#A8B0D8] block mb-1.5">Nigerian mobile number</label>
+                      <input
+                        type="tel"
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="e.g. 08012345678"
+                        className="w-full rounded-xl bg-[#121530] border border-[#1E2140] focus:border-[#6A4CFF] text-[#F2F6FF] placeholder-[#4A5280] px-4 py-3 text-sm focus:outline-none transition-colors"
+                      />
+                    </div>
+                    {phoneError && <p className="text-xs text-red-400">{phoneError}</p>}
+                    <button
+                      type="submit"
+                      disabled={phoneLoading || !phone.trim() || !ageConfirmed}
+                      className="w-full py-3.5 rounded-full text-sm font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                      style={{ background: phoneLoading || !phone.trim() ? "#1E2140" : "linear-gradient(100deg, #6A4CFF 0%, #2F6BFF 100%)" }}
+                    >
+                      {phoneLoading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
+                            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                          </svg>
+                          Sending…
+                        </span>
+                      ) : "Send code →"}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyOtp} className="space-y-3">
+                    <div>
+                      <p className="text-xs text-[#A8B0D8] mb-3">
+                        We sent a 6-digit code to <span className="font-semibold text-[#A88FFF]">{phone}</span>
+                      </p>
+                      <label className="text-xs text-[#A8B0D8] block mb-1.5">Verification code</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="\d{6}"
+                        maxLength={6}
+                        required
+                        autoFocus
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        placeholder="000000"
+                        className="w-full rounded-xl bg-[#121530] border border-[#1E2140] focus:border-[#6A4CFF] text-[#F2F6FF] placeholder-[#4A5280] px-4 py-3 text-sm text-center tracking-[0.4em] font-mono focus:outline-none transition-colors"
+                      />
+                    </div>
+                    {phoneError && <p className="text-xs text-red-400">{phoneError}</p>}
+                    <button
+                      type="submit"
+                      disabled={verifyLoading || otp.length < 6}
+                      className="w-full py-3.5 rounded-full text-sm font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                      style={{ background: verifyLoading || otp.length < 6 ? "#1E2140" : "linear-gradient(100deg, #6A4CFF 0%, #2F6BFF 100%)" }}
+                    >
+                      {verifyLoading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
+                            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                          </svg>
+                          Verifying…
+                        </span>
+                      ) : "Verify & sign in →"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setOtpSent(false); setOtp(""); setPhoneError(""); }}
+                      className="text-xs text-[#4A5280] hover:text-[#A8B0D8] transition-colors underline underline-offset-2 w-full text-center"
+                    >
+                      Change number
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
 
           </div>
         )}

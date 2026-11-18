@@ -129,5 +129,5 @@ Last updated: 2026-11-18
 
 | ID | Description | Priority |
 |----|-------------|----------|
-| FR-ACC-01 | Nigerian mobile + SMS sign-up | Medium |
+| FR-ACC-01 | Add TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_PHONE_NUMBER env vars to Vercel | Medium |
 | FR-GEN-01 | Provider switching + fallback | Low |
