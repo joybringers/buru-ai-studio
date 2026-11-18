@@ -16,7 +16,7 @@ Last updated: 2026-11-18
 |------|--------|
 | Email magic link | ✅ |
 | Google OAuth | ✅ |
-| Nigerian mobile + SMS code | ❌ |
+| Nigerian mobile + SMS code | ✅ Done 2026-11-18 (add Twilio env vars to Vercel to activate) |
 | 18+ confirmation checkbox at sign-up (FR-RSP-10) | ✅ Done 2026-11-18 |
 
 ### FR-ACC-02 — Trial credits on first sign-up
@@ -129,5 +129,5 @@ Last updated: 2026-11-18
 
 | ID | Description | Priority |
 |----|-------------|----------|
-| FR-ACC-01 | Add TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_PHONE_NUMBER env vars to Vercel | Medium |
+| FR-ACC-01 | Add TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_PHONE_NUMBER to Vercel + run Supabase SQL migration | Medium |
 | FR-GEN-01 | Provider switching + fallback | Low |

@@ -186,6 +186,15 @@ function VoiceIcon() {
   );
 }
 
+function ExpandIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
+      <rect x="3" y="3" width="10" height="10" rx="1" strokeLinecap="round"/>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M1 5V1h4M1 11v4h4M11 1h4v4M15 11v4h-4"/>
+    </svg>
+  );
+}
+
 function SunIcon() {
   return (
     <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
@@ -288,6 +297,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             <NavLink href="/tools/inpaint" label="Edit Image" icon={<PencilIcon />} onNavigate={onNavigate} />
             <NavLink href="/tools/lipsync" label="Lip Sync" icon={<MicIcon />} badge="NEW" onNavigate={onNavigate} />
             <NavLink href="/tools/faceswap" label="Face Swap" icon={<FaceIcon />} badge="HOT" onNavigate={onNavigate} />
+            <NavLink href="/tools/expand" label="Expand Scene" icon={<ExpandIcon />} badge="NEW" onNavigate={onNavigate} />
             <NavLink href="/tools/voiceover" label="Voice Over" icon={<VoiceIcon />} badge="NEW" onNavigate={onNavigate} />
             <NavLink href="/tools/voice-clone" label="Voice Clone" icon={<CloneIcon />} badge="NEW" onNavigate={onNavigate} />
             <NavLink href="/tools/relight" label="Relight" icon={<SunIcon />} badge="NEW" onNavigate={onNavigate} />
