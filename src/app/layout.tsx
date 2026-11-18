@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import AppShell from "@/components/AppShell";
 import Providers from "@/components/Providers";
 import { PRODUCT_NAME } from "@/config";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-poppins",
+});
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://buruai.elmorilx.com";
 
@@ -38,8 +43,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-black text-zinc-100`}>
+    <html lang="en" data-theme="dark" className={`${inter.variable} ${poppins.variable}`}>
+      <body className={`${inter.className} bg-night text-white-hot`}>
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>
