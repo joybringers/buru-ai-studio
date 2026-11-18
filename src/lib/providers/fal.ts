@@ -36,6 +36,7 @@ const FAL_TOOL_MAP: Record<string, string> = {
   "tool-lipsync":    "fal-ai/sadtalker",
   "tool-faceswap":   "fal-ai/faceswap",
   "tool-voiceover":   "fal-ai/kokoro",
+  "tool-expand":       "fal-ai/flux/dev/image-to-image",
   "tool-relight":     "fal-ai/ic-light",
   "tool-video-edit":   "fal-ai/kling-video/v1.6/standard/video-to-video",
   "tool-voice-clone":  "fal-ai/f5-tts",
@@ -154,6 +155,7 @@ export interface ToolOptions {
   refAudioUrl?: string;
   refText?: string;
   imageQuality?: ImageQuality;
+  expandDirection?: string;
 }
 
 function buildInput(
@@ -205,6 +207,22 @@ function buildInput(
       prompt,
       image_url: imageUrl,
       strength: opts?.strength ?? 0.75,
+      num_images: 1,
+    };
+  }
+
+  // Tool: scene expand (img2img zoom-out / outpaint via FLUX)
+  if (modelId === "tool-expand") {
+    const dir = opts?.expandDirection ?? "on all sides";
+    const userHint = prompt?.trim() ? ` ${prompt.trim()}.` : "";
+    const expandPrompt =
+      `Zoom out to show more of the scene ${dir}.${userHint} ` +
+      `Seamlessly continue the existing environment, maintaining the same artistic style, ` +
+      `color palette, lighting, and atmosphere. High quality, photorealistic continuation.`;
+    return {
+      prompt: expandPrompt,
+      image_url: imageUrl,
+      strength: opts?.strength ?? 0.4,
       num_images: 1,
     };
   }

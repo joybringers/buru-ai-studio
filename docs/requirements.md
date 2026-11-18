@@ -112,7 +112,7 @@ Last updated: 2026-11-18
 | Lip Sync | /tools/lipsync | ✅ |
 | Face Swap | /tools/faceswap | ✅ |
 | Voice Over (TTS) | /tools/voiceover | ✅ |
-| Expand/Outpaint | /tools/expand | ❌ |
+| Expand/Outpaint | /tools/expand | ✅ Done 2026-11-18 |
 
 ## Inspiration
 
@@ -131,4 +131,3 @@ Last updated: 2026-11-18
 |----|-------------|----------|
 | FR-ACC-01 | Nigerian mobile + SMS sign-up | Medium |
 | FR-GEN-01 | Provider switching + fallback | Low |
-| FR-TOL-01 | Expand/Outpaint tool (/tools/expand) | Medium |
