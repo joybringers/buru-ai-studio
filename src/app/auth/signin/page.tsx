@@ -14,6 +14,7 @@ export default function SignInPage() {
   // Phone OTP state
   const [tab, setTab] = useState<"email" | "phone">("email");
   const [phone, setPhone] = useState("");
+  const [phoneEmail, setPhoneEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [phoneLoading, setPhoneLoading] = useState(false);
@@ -32,7 +33,7 @@ export default function SignInPage() {
     const res = await fetch("/api/auth/phone/send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone }),
+      body: JSON.stringify({ phone, email: phoneEmail }),
     });
     const data = await res.json() as { error?: string };
     setPhoneLoading(false);
@@ -44,7 +45,7 @@ export default function SignInPage() {
     e.preventDefault();
     setVerifyLoading(true);
     setPhoneError("");
-    const result = await signIn("phone-otp", { phone, code: otp, redirect: false });
+    const result = await signIn("phone-otp", { phone, code: otp, email: phoneEmail, redirect: false });
     if (result?.error) {
       setPhoneError("Invalid or expired code — please try again.");
       setVerifyLoading(false);
@@ -168,7 +169,7 @@ export default function SignInPage() {
                 <button
                   key={t}
                   type="button"
-                  onClick={() => { setTab(t); setPhoneError(""); setOtpSent(false); setOtp(""); }}
+                  onClick={() => { setTab(t); setPhoneError(""); setOtpSent(false); setOtp(""); setPhoneEmail(""); }}
                   className="flex-1 py-2 text-xs font-semibold transition-all"
                   style={tab === t ? {
                     background: "linear-gradient(100deg, #6A4CFF, #2F6BFF)",
@@ -236,10 +237,21 @@ export default function SignInPage() {
                         className="w-full rounded-xl bg-[#121530] border border-[#1E2140] focus:border-[#6A4CFF] text-[#F2F6FF] placeholder-[#4A5280] px-4 py-3 text-sm focus:outline-none transition-colors"
                       />
                     </div>
+                    <div>
+                      <label className="text-xs text-[#A8B0D8] block mb-1.5">Email — we&apos;ll send the code here</label>
+                      <input
+                        type="email"
+                        required
+                        value={phoneEmail}
+                        onChange={(e) => setPhoneEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full rounded-xl bg-[#121530] border border-[#1E2140] focus:border-[#6A4CFF] text-[#F2F6FF] placeholder-[#4A5280] px-4 py-3 text-sm focus:outline-none transition-colors"
+                      />
+                    </div>
                     {phoneError && <p className="text-xs text-red-400">{phoneError}</p>}
                     <button
                       type="submit"
-                      disabled={phoneLoading || !phone.trim() || !ageConfirmed}
+                      disabled={phoneLoading || !phone.trim() || !phoneEmail.trim() || !ageConfirmed}
                       className="w-full py-3.5 rounded-full text-sm font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white"
                       style={{ background: phoneLoading || !phone.trim() ? "#1E2140" : "linear-gradient(100deg, #6A4CFF 0%, #2F6BFF 100%)" }}
                     >
@@ -258,7 +270,7 @@ export default function SignInPage() {
                   <form onSubmit={handleVerifyOtp} className="space-y-3">
                     <div>
                       <p className="text-xs text-[#A8B0D8] mb-3">
-                        We sent a 6-digit code to <span className="font-semibold text-[#A88FFF]">{phone}</span>
+                        We emailed a 6-digit code to <span className="font-semibold text-[#A88FFF]">{phoneEmail}</span>
                       </p>
                       <label className="text-xs text-[#A8B0D8] block mb-1.5">Verification code</label>
                       <input
@@ -293,7 +305,7 @@ export default function SignInPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setOtpSent(false); setOtp(""); setPhoneError(""); }}
+                      onClick={() => { setOtpSent(false); setOtp(""); setPhoneError(""); setPhoneEmail(""); }}
                       className="text-xs text-[#4A5280] hover:text-[#A8B0D8] transition-colors underline underline-offset-2 w-full text-center"
                     >
                       Change number

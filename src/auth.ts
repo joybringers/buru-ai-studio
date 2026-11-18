@@ -39,10 +39,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         phone: { label: "Phone", type: "text" },
         code:  { label: "Code",  type: "text" },
+        email: { label: "Email", type: "email" },
       },
       async authorize(credentials) {
         const phone = (credentials?.phone as string | undefined)?.trim();
         const code  = (credentials?.code  as string | undefined)?.trim();
+        const emailCred = (credentials?.email as string | undefined)?.trim().toLowerCase();
         if (!phone || !code) return null;
 
         const otp = await prisma.phoneOtp.findFirst({
@@ -67,8 +69,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             data: {
               phone,
               phoneVerified: new Date(),
-              email: `${phone.replace(/\+/g, "")}@phone.burustudio.internal`,
-              name: phone,
+              email: emailCred ?? `${phone.replace(/\+/g, "")}@phone.burustudio.internal`,
+              name: emailCred ?? phone,
             },
           });
         } else if (!user.phoneVerified) {
