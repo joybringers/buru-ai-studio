@@ -14,6 +14,22 @@ export async function POST(req: NextRequest) {
   }
 
   const event = JSON.parse(body);
+
+  // Forward non-Buru events to ChurchCompass webhook
+  const app = event.data?.metadata?.app;
+  if (app && app !== "buru") {
+    const ccUrl = process.env.CHURCHCOMPASS_WEBHOOK_URL ?? "https://churchcompass.elmorilx.com/api/paystack/webhook";
+    await fetch(ccUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-paystack-signature": signature,
+      },
+      body,
+    }).catch(() => {}); // best-effort forward
+    return NextResponse.json({ received: true });
+  }
+
   if (event.event !== "charge.success") {
     return NextResponse.json({ received: true });
   }
@@ -21,7 +37,7 @@ export async function POST(req: NextRequest) {
   const { reference, metadata, amount } = event.data as {
     reference: string;
     amount: number;
-    metadata: { userId?: string; credits?: number; label?: string };
+    metadata: { app?: string; userId?: string; credits?: number; label?: string };
   };
 
   const userId = metadata?.userId;

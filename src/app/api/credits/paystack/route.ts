@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       currency: "NGN",
       callback_url: `${baseUrl}/credits?paystack=success`,
       metadata: {
+        app: "buru",
         userId: session.user.id,
         credits: pkg.credits,
         label: pkg.label,
