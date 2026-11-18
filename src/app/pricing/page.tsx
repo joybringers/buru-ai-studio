@@ -109,8 +109,6 @@ const PLANS = [
   },
 ] as const;
 
-type PlanId = (typeof PLANS)[number]["id"];
-
 const FEATURE_ROWS: { label: string; key: keyof (typeof PLANS)[0]["features"] }[] = [
   { label: "Image generation",        key: "images" },
   { label: "Video — standard (5s)",   key: "videoStandard" },
