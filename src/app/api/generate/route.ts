@@ -23,9 +23,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { prompt, modelId, aspectRatio: rawRatio, imageUrl: rawImageUrl, duration: rawDuration } = body as {
-    prompt?: unknown; modelId?: unknown; aspectRatio?: unknown; imageUrl?: unknown; duration?: unknown;
+  const { prompt, modelId, aspectRatio: rawRatio, imageUrl: rawImageUrl, duration: rawDuration, projectId: rawProjectId } = body as {
+    prompt?: unknown; modelId?: unknown; aspectRatio?: unknown; imageUrl?: unknown; duration?: unknown; projectId?: unknown;
   };
+  const projectId = typeof rawProjectId === "string" && rawProjectId.length > 0 ? rawProjectId : undefined;
   const aspectRatio: AspectRatio =
     typeof rawRatio === "string" && VALID_RATIOS.includes(rawRatio as AspectRatio)
       ? (rawRatio as AspectRatio)
@@ -68,7 +69,7 @@ export async function POST(req: Request) {
 
   // Debit credits server-side — cost comes from config, never the request.
   try {
-    await debitUser(userId, creditsCharged, "image_gen", job.id);
+    await debitUser(userId, creditsCharged, "image_gen", job.id, projectId);
   } catch (err) {
     await prisma.job.update({
       where: { id: job.id },

@@ -11,12 +11,13 @@ export async function creditUser(
   userId: string,
   delta: number,
   reason: string,
-  jobId?: string
+  jobId?: string,
+  projectId?: string
 ): Promise<void> {
   if (delta <= 0) throw new Error("delta must be positive");
 
   await prisma.$transaction([
-    prisma.creditLedgerEntry.create({ data: { userId, delta, reason, jobId } }),
+    prisma.creditLedgerEntry.create({ data: { userId, delta, reason, jobId, projectId } }),
     prisma.user.update({
       where: { id: userId },
       data: { creditBalance: { increment: delta } },
@@ -28,7 +29,8 @@ export async function debitUser(
   userId: string,
   delta: number,
   reason: string,
-  jobId?: string
+  jobId?: string,
+  projectId?: string
 ): Promise<void> {
   if (delta <= 0) throw new Error("delta must be positive");
 
@@ -43,7 +45,7 @@ export async function debitUser(
     }
 
     await tx.creditLedgerEntry.create({
-      data: { userId, delta: -delta, reason, jobId },
+      data: { userId, delta: -delta, reason, jobId, projectId },
     });
 
     await tx.user.update({

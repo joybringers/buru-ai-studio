@@ -34,6 +34,8 @@ export interface ToolPageConfig {
   /** Extra dropdown below prompt */
   selectField?: { label: string; name: string; options: { value: string; label: string }[] };
   badge?: string;
+  /** Requires user to confirm they have consent to clone the voice (FR-RSP-05) */
+  requiresConsent?: boolean;
 }
 
 async function uploadFile(file: File): Promise<string> {
@@ -144,6 +146,7 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
   const [image2Url, setImage2Url] = useState<string | null>(null);
   const [audioPreview, setAudioPreview] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [consentChecked, setConsentChecked] = useState(false);
 
   async function handleFile(file: File, slot: "image" | "image2" | "audio") {
     const setPreview = slot === "image" ? setImagePreview : slot === "image2" ? setImage2Preview : setAudioPreview;
@@ -176,7 +179,8 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
      !!imageUrl) &&
     (!config.hasSecondImage || !!image2Url) &&
     (!config.hasAudio || !!audioUrl) &&
-    (!config.hasPrompt || !!prompt.trim());
+    (!config.hasPrompt || !!prompt.trim()) &&
+    (!config.requiresConsent || consentChecked);
 
   async function handleProcess() {
     if (!canProcess) return;
@@ -356,6 +360,21 @@ export default function ToolPage({ config }: { config: ToolPageConfig }) {
                   className="w-full accent-indigo-500" />
                 <p className="text-xs text-zinc-700">Higher = more creative; lower = closer to original</p>
               </div>
+            )}
+
+            {config.requiresConsent && (
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={consentChecked}
+                  onChange={(e) => setConsentChecked(e.target.checked)}
+                  disabled={isProcessing}
+                  className="mt-0.5 w-4 h-4 shrink-0 accent-indigo-500 disabled:opacity-50"
+                />
+                <span className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors leading-relaxed">
+                  I confirm I have the consent of the person whose voice is being cloned, or this is my own voice. I accept full responsibility for lawful use.
+                </span>
+              </label>
             )}
 
             {errorMsg && (

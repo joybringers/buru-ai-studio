@@ -15,6 +15,7 @@ export default function VoiceClonePage() {
       secondaryPromptPlaceholder: "Paste what is said in the voice sample — improves accuracy",
       outputIsAudio: true,
       badge: "NEW",
+      requiresConsent: true,
     }} />
   );
 }
