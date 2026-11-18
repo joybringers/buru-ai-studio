@@ -33,7 +33,7 @@ export default function Header() {
             <nav className="hidden sm:flex items-center gap-1 text-sm">
               {[
                 { href: "/studio", label: "Studio" },
-                { href: "/#pricing", label: "Pricing" },
+                { href: "/pricing", label: "Pricing" },
               ].map(({ href, label }) => (
                 <Link
                   key={href}
