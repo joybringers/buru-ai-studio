@@ -141,6 +141,8 @@ const IDEOGRAM_RATIO_MAP: Record<AspectRatio, string> = {
   "3:4":  "ASPECT_3_4",
 };
 
+export type ImageQuality = "draft" | "standard" | "cinema";
+
 export interface ToolOptions {
   duration?: "5" | "10";
   audioUrl?: string;
@@ -151,6 +153,7 @@ export interface ToolOptions {
   videoUrl?: string;
   refAudioUrl?: string;
   refText?: string;
+  imageQuality?: ImageQuality;
 }
 
 function buildInput(
@@ -256,10 +259,17 @@ function buildInput(
   }
 
   // Standard image generation
+  const quality = opts?.imageQuality ?? "standard";
   if (modelId === "nano-banana-pro") {
-    return { prompt, aspect_ratio: IDEOGRAM_RATIO_MAP[aspectRatio] ?? "ASPECT_1_1" };
+    const renderingSpeed = quality === "cinema" ? "QUALITY" : quality === "draft" ? "TURBO" : "BALANCED";
+    return { prompt, aspect_ratio: IDEOGRAM_RATIO_MAP[aspectRatio] ?? "ASPECT_1_1", rendering_speed: renderingSpeed };
   }
-  return { prompt, num_images: 1, image_size: FLUX_SIZE_MAP[aspectRatio] ?? "square_hd" };
+  // FLUX models
+  const imageSize = quality === "draft" ? "square" : (FLUX_SIZE_MAP[aspectRatio] ?? "square_hd");
+  const extra: Record<string, unknown> = {};
+  if (quality === "draft") extra.num_inference_steps = 4;
+  else if (quality === "cinema") extra.num_inference_steps = 50;
+  return { prompt, num_images: 1, image_size: imageSize, ...extra };
 }
 
 /** Upload a file to fal.ai storage. Returns a CDN URL the generation endpoints can reference. */

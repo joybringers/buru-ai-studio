@@ -151,6 +151,8 @@ export default function StudioPage() {
   // Video duration + quality
   const [videoDuration, setVideoDuration] = useState<"5" | "10">("5");
   const [videoQuality, setVideoQuality] = useState<"standard" | "pro">("standard");
+  // Image quality tier
+  const [imageQuality, setImageQuality] = useState<"draft" | "standard" | "cinema">("standard");
 
   // Camera + enhance state
   const [selectedCameraMove, setSelectedCameraMove] = useState<string | null>(null);
@@ -308,6 +310,7 @@ export default function StudioPage() {
           ...(isVideoModel ? {} : { aspectRatio }),
           ...(isI2V && uploadedImageUrl ? { imageUrl: uploadedImageUrl } : {}),
           ...(isKling ? { duration: videoDuration } : {}),
+          ...(!isVideoModel && !isAudioModel ? { imageQuality } : {}),
         }),
       });
       const body = await res.json();
@@ -640,7 +643,33 @@ export default function StudioPage() {
             <p className="text-xs text-zinc-700">Describe music or a sound effect · generates 30-second audio</p>
           </div>
 
-          {/* Duration + Quality controls — Kling models only */}
+          {/* Quality selector — image models */}
+          {!isVideoModel && !isAudioModel && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Quality</p>
+              <div className="flex gap-2">
+                {([
+                  { id: "draft",    label: "Draft",    sub: "fast" },
+                  { id: "standard", label: "Standard", sub: "default" },
+                  { id: "cinema",   label: "Cinema",   sub: "best" },
+                ] as const).map(({ id, label, sub }) => (
+                  <button key={id}
+                    onClick={() => setImageQuality(id)}
+                    disabled={phase === "generating"}
+                    className={`flex-1 py-2 rounded-lg border text-xs font-medium transition-all disabled:opacity-50 flex flex-col items-center gap-0.5 ${
+                      imageQuality === id
+                        ? "border-indigo-500 bg-indigo-950/30 text-indigo-300"
+                        : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+                    }`}>
+                    <span>{label}</span>
+                    <span className="text-[10px] opacity-60">{sub}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Duration + Quality controls — Kling video models only */}
           {isKling && (
             <div className="space-y-3">
               <div className="space-y-1.5">
@@ -663,16 +692,19 @@ export default function StudioPage() {
               <div className="space-y-1.5">
                 <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Quality</p>
                 <div className="flex gap-2">
-                  {(["standard", "pro"] as const).map((q) => (
-                    <button key={q}
-                      onClick={() => setVideoQuality(q)}
+                  {([
+                    { id: "standard", label: "720p Standard" },
+                    { id: "pro",      label: "1080p Cinema"  },
+                  ] as const).map(({ id, label }) => (
+                    <button key={id}
+                      onClick={() => setVideoQuality(id)}
                       disabled={phase === "generating"}
                       className={`flex-1 py-2 rounded-lg border text-xs font-medium transition-all disabled:opacity-50 ${
-                        videoQuality === q
+                        videoQuality === id
                           ? "border-indigo-500 bg-indigo-950/30 text-indigo-300"
                           : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
                       }`}>
-                      {q.charAt(0).toUpperCase() + q.slice(1)}
+                      {label}
                     </button>
                   ))}
                 </div>

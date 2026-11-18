@@ -23,10 +23,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { prompt, modelId, aspectRatio: rawRatio, imageUrl: rawImageUrl, duration: rawDuration, projectId: rawProjectId } = body as {
-    prompt?: unknown; modelId?: unknown; aspectRatio?: unknown; imageUrl?: unknown; duration?: unknown; projectId?: unknown;
+  const { prompt, modelId, aspectRatio: rawRatio, imageUrl: rawImageUrl, duration: rawDuration, projectId: rawProjectId, imageQuality: rawQuality } = body as {
+    prompt?: unknown; modelId?: unknown; aspectRatio?: unknown; imageUrl?: unknown; duration?: unknown; projectId?: unknown; imageQuality?: unknown;
   };
   const projectId = typeof rawProjectId === "string" && rawProjectId.length > 0 ? rawProjectId : undefined;
+  const imageQuality = (rawQuality === "draft" || rawQuality === "cinema") ? rawQuality : "standard" as const;
   const aspectRatio: AspectRatio =
     typeof rawRatio === "string" && VALID_RATIOS.includes(rawRatio as AspectRatio)
       ? (rawRatio as AspectRatio)
@@ -83,7 +84,7 @@ export async function POST(req: Request) {
 
   // Submit to the provider; refund on failure.
   try {
-    const providerJobId = await submitJob(prompt.trim(), modelId, aspectRatio, imageUrl, { duration: duration as "5" | "10" });
+    const providerJobId = await submitJob(prompt.trim(), modelId, aspectRatio, imageUrl, { duration: duration as "5" | "10", imageQuality });
     await prisma.job.update({
       where: { id: job.id },
       data: { providerJobId, status: "running" },

@@ -3,7 +3,7 @@ import type { GenerateStatus } from "./types";
 
 export type { GenerateResult, GenerateStatus } from "./types";
 export { uploadToStorage } from "./fal";
-export type { ToolOptions } from "./fal";
+export type { ToolOptions, ImageQuality } from "./fal";
 
 export type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
 
