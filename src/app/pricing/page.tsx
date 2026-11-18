@@ -343,6 +343,78 @@ export default function PricingPage() {
           </div>
         </div>
 
+        {/* Film cost guide */}
+        <div className="mb-14">
+          <h2 className="text-center text-sm font-semibold text-[#F2F6FF] mb-2"
+            style={{ fontFamily: "var(--font-poppins)" }}>
+            What does a typical project cost?
+          </h2>
+          <p className="text-center text-xs text-[#4A5280] mb-8">
+            Rough estimates based on standard quality settings
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {
+                label: "Social Ad",
+                desc: "30s product ad",
+                breakdown: "4 product images · 2 short videos",
+                credits: 150,
+                pack: "Maker",
+                packColor: "#7B84B5",
+              },
+              {
+                label: "Short Film",
+                desc: "2-min narrative",
+                breakdown: "6 stills · 8 video clips",
+                credits: 870,
+                pack: "Film Pack",
+                packColor: "#6A4CFF",
+              },
+              {
+                label: "Music Video",
+                desc: "3-min single",
+                breakdown: "15 video clips · 5 images",
+                credits: 1540,
+                pack: "Studio",
+                packColor: "#2F6BFF",
+              },
+              {
+                label: "UGC Creator Pack",
+                desc: "20 short-form ads",
+                breakdown: "40 images · 10 short videos",
+                credits: 920,
+                pack: "Film Pack +",
+                packColor: "#6A4CFF",
+              },
+            ].map((item) => (
+              <div key={item.label}
+                className="rounded-2xl p-5 flex flex-col gap-3"
+                style={{ background: "#0E1128", border: "1px solid #1E2140" }}>
+                <div>
+                  <p className="text-sm font-semibold text-[#F2F6FF] mb-0.5"
+                    style={{ fontFamily: "var(--font-poppins)" }}>{item.label}</p>
+                  <p className="text-xs text-[#4A5280]">{item.desc}</p>
+                </div>
+                <p className="text-[10px] text-[#7B84B5] leading-relaxed">{item.breakdown}</p>
+                <div className="mt-auto">
+                  <p className="text-2xl font-bold text-[#F2F6FF] leading-none mb-1"
+                    style={{ fontFamily: "var(--font-poppins)" }}>
+                    ~{item.credits.toLocaleString()}
+                    <span className="text-xs font-normal text-[#4A5280] ml-1">credits</span>
+                  </p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider"
+                    style={{ color: item.packColor }}>
+                    → {item.pack} covers this
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-[10px] text-[#4A5280] mt-4">
+            Draft images ≈ 3 cr · Standard images ≈ 8 cr · Cinema images ≈ 25 cr · 5s video ≈ 60–100 cr · 10s pro video ≈ 150 cr
+          </p>
+        </div>
+
         {/* FAQ */}
         <div className="max-w-2xl mx-auto space-y-4 mb-16">
           <h2 className="text-center text-sm font-semibold text-[#F2F6FF] mb-6"

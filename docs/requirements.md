@@ -37,7 +37,7 @@ Last updated: 2026-11-18
 | Rights clearly stated per plan | ✅ |
 | Feature comparison table | ✅ |
 | FAQ | ✅ |
-| Typical film cost per template | ❌ |
+| Typical film cost per template | ✅ Done 2026-11-18 |
 
 ---
 
@@ -101,15 +101,34 @@ Last updated: 2026-11-18
 
 ---
 
+## Tools
+
+### FR-TOL-01 — Image & Video Tools
+| Tool | Route | Status |
+|------|-------|--------|
+| Image Upscale (4×) | /tools/upscale | ✅ |
+| Remove Background | /tools/background | ✅ |
+| Edit Image (inpaint) | /tools/inpaint | ✅ |
+| Lip Sync | /tools/lipsync | ✅ |
+| Face Swap | /tools/faceswap | ✅ |
+| Voice Over (TTS) | /tools/voiceover | ✅ |
+| Expand/Outpaint | /tools/expand | ❌ |
+
+## Inspiration
+
+### FR-INS-01 — /inspire page
+| Item | Status |
+|------|--------|
+| Category tabs (8 categories) | ✅ |
+| 30-prompt gallery with gradient thumbnails | ✅ |
+| "Use this prompt →" CTA linking to Studio | ✅ |
+
+---
+
 ## Pending / In Progress
 
 | ID | Description | Priority |
 |----|-------------|----------|
 | FR-ACC-01 | Nigerian mobile + SMS sign-up | Medium |
-| FR-QUO-01 | Typical film cost per template on pricing page | Low |
-| FR-GEN-01 | Quality tiers in generation flow | High |
 | FR-GEN-01 | Provider switching + fallback | Low |
-| FR-INS-01 | /inspire page | Medium |
 | FR-TOL-01 | Expand/Outpaint tool (/tools/expand) | Medium |
-| FR-LSP-01 | Lip-sync tool | Medium |
-| FR-FSW-01 | Face swap tool | Low |
