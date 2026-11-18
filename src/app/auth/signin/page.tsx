@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { PRODUCT_NAME } from "@/config";
+import BuruLogo from "@/components/BuruLogo";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -26,88 +26,64 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-black">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#090B1A]">
 
-      {/* Animated background blobs */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-20"
-          style={{
-            background: "radial-gradient(circle, #4f46e5 0%, transparent 70%)",
-            animation: "blob-drift 14s ease-in-out infinite",
-          }}
-        />
-        <div
-          className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full opacity-15"
-          style={{
-            background: "radial-gradient(circle, #7c3aed 0%, transparent 70%)",
-            animation: "blob-drift 18s ease-in-out infinite reverse",
-          }}
-        />
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-5"
-          style={{
-            background: "radial-gradient(circle, #818cf8 0%, transparent 60%)",
-          }}
-        />
-        {/* Noise texture */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-            backgroundSize: "200px 200px",
-          }}
-        />
-      </div>
-
-      {/* Card */}
-      <div className="relative z-10 w-full max-w-sm">
+      {/* ── Left panel: form ──────────────────────────────────────── */}
+      <div className="relative flex flex-col justify-center w-full md:w-1/2 px-8 sm:px-16 lg:px-20 py-10 z-10">
 
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 shadow-2xl shadow-indigo-500/30 mb-4">
-            <span className="text-white font-black text-2xl tracking-tight">B</span>
-          </div>
-          <h1 className="text-2xl font-black text-white tracking-tight">{PRODUCT_NAME}</h1>
-          <p className="text-sm text-zinc-500 mt-1.5">Create anything with AI</p>
+        <div className="mb-10">
+          <BuruLogo className="text-xl" />
         </div>
 
         {sent ? (
-          /* ── Confirmation state ──────────────────────────────────── */
-          <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 rounded-2xl p-7 text-center space-y-4">
-            {/* Envelope icon */}
-            <div className="mx-auto w-12 h-12 rounded-full bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-indigo-400">
+          /* ── Sent state ───────────────────────────────────────── */
+          <div className="max-w-sm space-y-6">
+            <div className="w-12 h-12 rounded-full bg-[#6A4CFF]/15 border border-[#6A4CFF]/30 flex items-center justify-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A88FFF" strokeWidth="1.5">
                 <rect x="2" y="4" width="20" height="16" rx="2" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
               </svg>
             </div>
             <div>
-              <p className="text-white font-bold text-lg">Check your inbox</p>
-              <p className="text-sm text-zinc-400 mt-1.5">
+              <h1 className="text-2xl font-bold text-[#F2F6FF]" style={{ fontFamily: "var(--font-poppins), Poppins, sans-serif" }}>
+                Check your inbox
+              </h1>
+              <p className="text-sm text-[#A8B0D8] mt-2">
                 We emailed a sign-in link to
               </p>
-              <p className="text-sm font-semibold text-indigo-300 mt-0.5 break-all">{sentTo}</p>
+              <p className="text-sm font-semibold text-[#A88FFF] mt-0.5 break-all">{sentTo}</p>
             </div>
-            <p className="text-xs text-zinc-600 leading-relaxed">
+            <p className="text-xs text-[#4A5280] leading-relaxed">
               The link expires in 24 hours. Check your spam folder if you don&apos;t see it.
             </p>
             <button
               onClick={() => { setSent(false); setEmail(""); }}
-              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors underline underline-offset-2"
+              className="text-xs text-[#A8B0D8] hover:text-[#F2F6FF] transition-colors underline underline-offset-2"
             >
               Use a different email
             </button>
           </div>
         ) : (
-          /* ── Sign-in form ────────────────────────────────────────── */
-          <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 rounded-2xl p-7 space-y-4">
+          /* ── Sign-in form ─────────────────────────────────────── */
+          <div className="max-w-sm space-y-6">
+            <div>
+              <h1
+                className="text-3xl font-bold text-[#F2F6FF] leading-tight"
+                style={{ fontFamily: "var(--font-poppins), Poppins, sans-serif" }}
+              >
+                Sign in to BuruStudio
+              </h1>
+              <p className="text-sm text-[#A8B0D8] mt-2 leading-relaxed">
+                New or returning, it&apos;s the same page. Create anything with AI.
+              </p>
+            </div>
 
             {/* Google */}
             <button
               onClick={handleGoogleSignIn}
               disabled={googleLoading}
-              className="w-full flex items-center justify-center gap-3 bg-white hover:bg-zinc-100 text-zinc-900 font-semibold text-sm py-3 rounded-xl transition-all shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-3 bg-white hover:bg-[#F2F6FF] text-[#090B1A] font-semibold text-sm py-3.5 rounded-full transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {googleLoading ? (
                 <svg className="animate-spin w-4 h-4 text-zinc-600" viewBox="0 0 24 24" fill="none">
@@ -127,29 +103,33 @@ export default function SignInPage() {
 
             {/* Divider */}
             <div className="relative flex items-center gap-3">
-              <div className="flex-1 h-px bg-zinc-800" />
-              <span className="text-xs text-zinc-600 font-medium">or continue with email</span>
-              <div className="flex-1 h-px bg-zinc-800" />
+              <div className="flex-1 h-px bg-[#1E2140]" />
+              <span className="text-xs text-[#4A5280] font-medium whitespace-nowrap">or continue with email</span>
+              <div className="flex-1 h-px bg-[#1E2140]" />
             </div>
 
             {/* Email form */}
             <form onSubmit={handleEmailSubmit} className="space-y-3">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full rounded-xl bg-black/40 border border-zinc-800 focus:border-indigo-500 text-zinc-100 placeholder-zinc-600 px-4 py-3 text-sm focus:outline-none transition-colors"
-              />
+              <div>
+                <label className="text-xs text-[#A8B0D8] block mb-1.5">Email</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full rounded-xl bg-[#121530] border border-[#1E2140] focus:border-[#6A4CFF] text-[#F2F6FF] placeholder-[#4A5280] px-4 py-3 text-sm focus:outline-none transition-colors"
+                />
+              </div>
               <button
                 type="submit"
                 disabled={loading || !email.trim()}
-                className={`w-full py-3 rounded-xl text-sm font-bold tracking-wide transition-all ${
-                  loading || !email.trim()
-                    ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                    : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
-                }`}
+                className="w-full py-3.5 rounded-full text-sm font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                style={{
+                  background: loading || !email.trim()
+                    ? "#1E2140"
+                    : "linear-gradient(100deg, #6A4CFF 0%, #2F6BFF 100%)",
+                }}
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -163,23 +143,118 @@ export default function SignInPage() {
               </button>
             </form>
 
-            <p className="text-center text-xs text-zinc-700 leading-relaxed">
-              By signing in you agree to our{" "}
-              <a href="/terms" className="text-zinc-500 hover:text-zinc-300 transition-colors underline-offset-2 underline">terms</a>
+            <p className="text-xs text-[#4A5280] leading-relaxed">
+              No password to remember. We email you a one-time link.
+            </p>
+
+            <p className="text-xs text-[#4A5280] leading-relaxed">
+              By continuing you agree to our{" "}
+              <a href="/terms" className="text-[#7B84B5] hover:text-[#A8B0D8] transition-colors underline-offset-2 underline">Terms</a>
               {" "}and{" "}
-              <a href="/privacy" className="text-zinc-500 hover:text-zinc-300 transition-colors underline-offset-2 underline">privacy policy</a>.
+              <a href="/privacy" className="text-[#7B84B5] hover:text-[#A8B0D8] transition-colors underline-offset-2 underline">Privacy Policy</a>.
             </p>
           </div>
         )}
       </div>
 
-      <style jsx>{`
-        @keyframes blob-drift {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33%       { transform: translate(30px, -20px) scale(1.05); }
-          66%       { transform: translate(-20px, 15px) scale(0.97); }
-        }
-      `}</style>
+      {/* ── Right panel: AI sci-fi artwork ──────────────────────── */}
+      <div className="hidden md:block relative w-1/2 overflow-hidden">
+        {/* Sky gradient background */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: "linear-gradient(170deg, #1a0a2e 0%, #2d1472 20%, #4a1fa8 40%, #3730a3 60%, #1e1b4b 80%, #0d0b1e 100%)",
+          }}
+        />
+
+        {/* Stars */}
+        <div className="absolute inset-0" style={{ background: "radial-gradient(1px 1px at 15% 12%, rgba(255,255,255,0.7) 0%, transparent 100%), radial-gradient(1px 1px at 35% 8%, rgba(255,255,255,0.5) 0%, transparent 100%), radial-gradient(1.5px 1.5px at 60% 15%, rgba(255,255,255,0.6) 0%, transparent 100%), radial-gradient(1px 1px at 80% 6%, rgba(255,255,255,0.4) 0%, transparent 100%), radial-gradient(1px 1px at 25% 30%, rgba(255,255,255,0.3) 0%, transparent 100%), radial-gradient(1.5px 1.5px at 70% 25%, rgba(255,255,255,0.5) 0%, transparent 100%), radial-gradient(1px 1px at 88% 35%, rgba(255,255,255,0.4) 0%, transparent 100%), radial-gradient(1px 1px at 45% 20%, rgba(255,255,255,0.3) 0%, transparent 100%)" }} />
+
+        {/* Glowing cyan orb */}
+        <div
+          className="absolute"
+          style={{
+            right: "22%",
+            top: "28%",
+            width: 180,
+            height: 180,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, #ffffff 0%, #2BE4FF 25%, #00c8e8 50%, transparent 70%)",
+            boxShadow: "0 0 60px 30px rgba(43,228,255,0.35), 0 0 120px 60px rgba(43,228,255,0.15)",
+            animation: "float-blob 8s ease-in-out infinite",
+          }}
+        />
+
+        {/* Lightning bolt SVG */}
+        <svg
+          className="absolute"
+          style={{ top: 0, left: "50%", transform: "translateX(-50%)" }}
+          width="120"
+          height="65%"
+          viewBox="0 0 120 500"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="xMidYMin meet"
+        >
+          <defs>
+            <filter id="bolt-glow">
+              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          </defs>
+          <path
+            d="M68 0 L40 220 L62 220 L38 500 L82 180 L58 180 L85 0 Z"
+            fill="white"
+            fillOpacity="0.95"
+            filter="url(#bolt-glow)"
+          />
+        </svg>
+
+        {/* Mountain silhouettes */}
+        <svg
+          className="absolute bottom-0 left-0 right-0"
+          viewBox="0 0 800 320"
+          preserveAspectRatio="xMidYMax meet"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ width: "100%", height: "auto" }}
+        >
+          {/* Back mountains — slightly lighter */}
+          <polygon points="0,320 180,80 360,320" fill="#0d0b1e" />
+          <polygon points="160,320 340,60 520,320" fill="#0f0d20" />
+          <polygon points="400,320 580,90 760,320" fill="#0d0b1e" />
+          <polygon points="600,320 740,110 900,320" fill="#0f0d20" />
+          {/* Front mountains — darkest */}
+          <polygon points="-40,320 120,160 300,320" fill="#090B1A" />
+          <polygon points="260,320 460,120 660,320" fill="#090B1A" />
+          <polygon points="560,320 720,140 900,320" fill="#090B1A" />
+          <rect x="0" y="300" width="900" height="40" fill="#090B1A" />
+        </svg>
+
+        {/* Prompt card */}
+        <div
+          className="absolute bottom-10 left-8 right-8 rounded-2xl px-5 py-4"
+          style={{
+            background: "rgba(18, 21, 48, 0.75)",
+            backdropFilter: "blur(16px)",
+            border: "1px solid rgba(106, 76, 255, 0.25)",
+          }}
+        >
+          <p className="text-sm text-[#F2F6FF] leading-relaxed mb-3">
+            A lighthouse keeper climbs the stairs as a storm breaks, cinematic, violet lightning
+          </p>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[#7B84B5]">16:9 · Quick</span>
+            <button
+              className="text-xs font-semibold px-4 py-1.5 rounded-full text-white"
+              style={{ background: "linear-gradient(100deg, #6A4CFF 0%, #2F6BFF 100%)" }}
+            >
+              Generate · 3 cr
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

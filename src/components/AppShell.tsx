@@ -5,11 +5,16 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 
 const MARKETING_PATHS = ["/"];
+const AUTH_PATHS = ["/auth/signin", "/auth/verify-request", "/auth/error"];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMarketing = MARKETING_PATHS.includes(pathname);
+
+  if (AUTH_PATHS.some((p) => pathname.startsWith(p))) {
+    return <>{children}</>;
+  }
 
   if (isMarketing) {
     return (
@@ -44,11 +49,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Mobile top bar */}
-        <div className="md:hidden h-12 border-b border-zinc-800/60 bg-[#0a0a0a] flex items-center px-4 gap-3 shrink-0">
+        <div className="md:hidden h-12 border-b border-[#1E2140]/60 bg-[#0E1128] flex items-center px-4 gap-3 shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
             aria-label="Open sidebar"
-            className="text-zinc-500 hover:text-zinc-200 transition-colors"
+            className="text-[#4A5280] hover:text-[#F2F6FF] transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
               <path d="M2 4h14v1.5H2V4Zm0 4.25h14v1.5H2v-1.5Zm0 4.25h14V14H2v-1.5Z"/>

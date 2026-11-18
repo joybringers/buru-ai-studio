@@ -3,7 +3,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { PRODUCT_NAME, creditsToGBP } from "@/config";
+import { creditsToGBP } from "@/config";
+import BuruLogo from "@/components/BuruLogo";
 import { useUser } from "@/context/UserContext";
 import TopUpModal from "./TopUpModal";
 
@@ -28,16 +29,16 @@ function NavLink({
       onClick={onNavigate}
       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
         active
-          ? "bg-indigo-500/12 text-indigo-300 border border-indigo-500/20"
-          : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900"
+          ? "bg-[#6A4CFF]/10 text-[#A88FFF] border border-[#6A4CFF]/25"
+          : "text-[#4A5280] hover:text-[#F2F6FF] hover:bg-[#1E2140]/60"
       }`}
     >
-      <span className={`w-4 h-4 shrink-0 transition-colors ${active ? "text-indigo-400" : "text-zinc-600 group-hover:text-zinc-400"}`}>
+      <span className={`w-4 h-4 shrink-0 transition-colors ${active ? "text-[#A88FFF]" : "text-[#4A5280] group-hover:text-[#7B84B5]"}`}>
         {icon}
       </span>
       <span className="flex-1">{label}</span>
       {badge && (
-        <span className="text-[9px] font-bold tracking-widest bg-indigo-600 text-white px-1.5 py-0.5 rounded-full leading-none">
+        <span className="text-[9px] font-bold tracking-widest bg-[#6A4CFF] text-white px-1.5 py-0.5 rounded-full leading-none">
           {badge}
         </span>
       )}
@@ -47,7 +48,7 @@ function NavLink({
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-[0.25em] px-3 pt-1 pb-1">
+    <p className="text-[9px] font-bold text-[#4A5280] uppercase tracking-[0.25em] px-3 pt-1 pb-1">
       {label}
     </p>
   );
@@ -248,15 +249,12 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      <div className="h-full w-56 bg-[#0a0a0a] border-r border-zinc-800/50 flex flex-col overflow-hidden">
+      <div className="h-full w-56 bg-[#0E1128] border-r border-[#1E2140]/60 flex flex-col overflow-hidden">
 
         {/* Logo */}
-        <div className="px-4 py-4 border-b border-zinc-800/50 shrink-0">
-          <Link href="/" onClick={onNavigate} className="flex items-center gap-2.5">
-            <span className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-xs font-black shrink-0">
-              B
-            </span>
-            <span className="font-bold text-white text-sm tracking-tight">{PRODUCT_NAME}</span>
+        <div className="px-4 py-4 border-b border-[#1E2140]/60 shrink-0">
+          <Link href="/" onClick={onNavigate} style={{ textDecoration: "none" }}>
+            <BuruLogo />
           </Link>
         </div>
 
@@ -314,24 +312,24 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </nav>
 
         {/* Bottom: balance + auth */}
-        <div className="shrink-0 px-2 py-3 border-t border-zinc-800/50 space-y-1.5">
+        <div className="shrink-0 px-2 py-3 border-t border-[#1E2140]/60 space-y-1.5">
           {session?.user ? (
             <>
               <button
                 onClick={() => setShowTopUp(true)}
-                className="w-full flex items-center justify-between bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 px-3 py-2.5 rounded-xl transition-all"
+                className="w-full flex items-center justify-between bg-[#121530] hover:bg-[#1E2140] border border-[#1E2140] hover:border-[#6A4CFF]/30 px-3 py-2.5 rounded-xl transition-all"
               >
                 <div className="text-left">
-                  <p className="text-sm font-bold text-zinc-100 leading-none">{balance} cr</p>
-                  <p className="text-xs text-zinc-600 mt-0.5">{creditsToGBP(balance)}</p>
+                  <p className="text-sm font-bold text-[#F2F6FF] leading-none">{balance} cr</p>
+                  <p className="text-xs text-[#4A5280] mt-0.5">{creditsToGBP(balance)}</p>
                 </div>
-                <span className="text-xs font-semibold text-indigo-400">+ Top up</span>
+                <span className="text-xs font-semibold text-[#6A4CFF]">+ Top up</span>
               </button>
               <div className="flex items-center justify-between px-1">
-                <span className="text-xs text-zinc-700 truncate max-w-[130px]">{session.user.email}</span>
+                <span className="text-xs text-[#4A5280] truncate max-w-[130px]">{session.user.email}</span>
                 <button
                   onClick={() => signOut({ callbackUrl: "/auth/signin" })}
-                  className="text-xs text-zinc-600 hover:text-red-400 shrink-0 ml-2 transition-colors"
+                  className="text-xs text-[#4A5280] hover:text-red-400 shrink-0 ml-2 transition-colors"
                 >
                   Sign out
                 </button>
@@ -342,14 +340,15 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               <Link
                 href="/auth/signin"
                 onClick={onNavigate}
-                className="block w-full text-center px-3 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition-colors"
+                className="block w-full text-center px-3 py-2.5 rounded-xl text-white text-sm font-bold transition-colors"
+                style={{ background: "linear-gradient(100deg, #6A4CFF 0%, #2F6BFF 100%)" }}
               >
                 Start for free
               </Link>
               <Link
                 href="/auth/signin"
                 onClick={onNavigate}
-                className="block w-full text-center px-3 py-2 rounded-xl text-zinc-500 hover:text-zinc-300 text-xs transition-colors"
+                className="block w-full text-center px-3 py-2 rounded-xl text-[#4A5280] hover:text-[#F2F6FF] text-xs transition-colors"
               >
                 Sign in
               </Link>

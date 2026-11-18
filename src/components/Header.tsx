@@ -21,7 +21,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-zinc-800 bg-black/90 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-[#1E2140] bg-[#090B1A]/95 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
 
           {/* Left: logo + nav */}
@@ -40,8 +40,8 @@ export default function Header() {
                   href={href}
                   className={`px-3 py-1.5 rounded-lg transition-colors ${
                     isActive(href)
-                      ? "text-zinc-100 bg-zinc-800"
-                      : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900"
+                      ? "text-[#F2F6FF] bg-[#1E2140]"
+                      : "text-[#A8B0D8] hover:text-[#F2F6FF] hover:bg-[#1E2140]/60"
                   }`}
                 >
                   {label}
@@ -56,13 +56,13 @@ export default function Header() {
               <>
                 {/* Monthly cap bar */}
                 <div className="hidden lg:flex items-center gap-2">
-                  <div className="w-16 h-1 rounded-full bg-zinc-800 overflow-hidden">
+                  <div className="w-16 h-1 rounded-full bg-[#1E2140] overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all ${nearCap ? "bg-amber-500" : "bg-indigo-500"}`}
+                      className={`h-full rounded-full transition-all ${nearCap ? "bg-amber-500" : "bg-[#6A4CFF]"}`}
                       style={{ width: `${capPct}%` }}
                     />
                   </div>
-                  <span className={`text-xs ${nearCap ? "text-amber-400" : "text-zinc-600"}`}>
+                  <span className={`text-xs ${nearCap ? "text-amber-400" : "text-[#4A5280]"}`}>
                     {monthlySpent}/{monthlyCap}
                   </span>
                 </div>
@@ -70,20 +70,20 @@ export default function Header() {
                 {/* Credits */}
                 <button
                   onClick={() => setShowTopUp(true)}
-                  className="flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 px-3 py-1.5 rounded-lg transition-all"
+                  className="flex items-center gap-1.5 bg-[#121530] hover:bg-[#1E2140] border border-[#1E2140] hover:border-[#6A4CFF]/30 px-3 py-1.5 rounded-lg transition-all"
                 >
-                  <span className="font-semibold text-zinc-100 text-xs">{balance} cr</span>
-                  <span className="text-zinc-600 text-xs">{creditsToGBP(balance)}</span>
-                  <span className="text-xs text-indigo-400 border-l border-zinc-700 pl-1.5 ml-0.5">+ Top up</span>
+                  <span className="font-semibold text-[#F2F6FF] text-xs">{balance} cr</span>
+                  <span className="text-[#4A5280] text-xs">{creditsToGBP(balance)}</span>
+                  <span className="text-xs text-[#6A4CFF] border-l border-[#1E2140] pl-1.5 ml-0.5">+ Top up</span>
                 </button>
 
-                <div className="flex items-center gap-2 pl-2 border-l border-zinc-800">
-                  <span className="text-xs text-zinc-600 max-w-[100px] truncate hidden lg:block">
+                <div className="flex items-center gap-2 pl-2 border-l border-[#1E2140]">
+                  <span className="text-xs text-[#4A5280] max-w-[100px] truncate hidden lg:block">
                     {session.user.email}
                   </span>
                   <button
                     onClick={() => signOut({ callbackUrl: "/auth/signin" })}
-                    className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+                    className="text-xs text-[#4A5280] hover:text-[#F2F6FF] transition-colors"
                   >
                     Sign out
                   </button>
@@ -95,13 +95,13 @@ export default function Header() {
               <div className="flex items-center gap-2">
                 <Link
                   href="/auth/signin"
-                  className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-1.5"
+                  className="text-xs text-[#A8B0D8] hover:text-[#F2F6FF] transition-colors px-3 py-1.5"
                 >
                   Sign in
                 </Link>
                 <Link
                   href="/auth/signin"
-                  className="text-xs font-semibold bg-white hover:bg-zinc-100 text-zinc-900 px-4 py-1.5 rounded-lg transition-colors"
+                  className="text-xs font-semibold bg-white hover:bg-[#F2F6FF] text-[#090B1A] px-4 py-1.5 rounded-lg transition-colors"
                 >
                   Start for free →
                 </Link>

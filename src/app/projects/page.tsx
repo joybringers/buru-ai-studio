@@ -21,13 +21,13 @@ export default async function ProjectsPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Your Films</h1>
-          <p className="text-sm text-gray-400 mt-1">Each project has its own quote before anything is generated.</p>
+          <p className="text-sm text-[#A8B0D8] mt-1">Each project has its own quote before anything is generated.</p>
         </div>
         <NewProjectButton />
       </div>
 
       {projects.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">
+        <div className="text-center py-20 text-[#4A5280]">
           <p className="text-lg mb-2">No films yet.</p>
           <p className="text-sm">Create a project to get a locked quote before spending any credits.</p>
         </div>
@@ -47,7 +47,7 @@ export default async function ProjectsPage() {
                     <p className="font-semibold text-white truncate group-hover:text-[#A5B4FC] transition-colors">
                       {p.title}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-[#4A5280] mt-0.5">
                       {Math.floor(p.targetLength / 60)}m {p.targetLength % 60}s target
                     </p>
                   </div>
@@ -55,7 +55,7 @@ export default async function ProjectsPage() {
                 </div>
                 {q && (
                   <div className="mt-4">
-                    <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+                    <div className="flex justify-between text-xs text-[#4A5280] mb-1.5">
                       <span>{q.spentCredits} / {q.hardCap} credits</span>
                       <span>{pct}%</span>
                     </div>
@@ -81,7 +81,7 @@ export default async function ProjectsPage() {
 
 function StatusBadge({ status, accepted }: { status: string; accepted: boolean }) {
   const map: Record<string, { label: string; cls: string }> = {
-    draft:      { label: "Draft",      cls: "bg-[#1E2244] text-gray-400" },
+    draft:      { label: "Draft",      cls: "bg-[#1E2244] text-[#7B84B5]" },
     quoted:     { label: accepted ? "Locked" : "Quoted",  cls: accepted ? "bg-[#022B1E] text-emerald-400" : "bg-[#2D1E00] text-amber-400" },
     rendering:  { label: "Rendering",  cls: "bg-[#1A1660] text-[#A5B4FC]" },
     done:       { label: "Done",       cls: "bg-[#022B1E] text-emerald-400" },
