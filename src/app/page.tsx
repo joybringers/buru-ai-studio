@@ -33,6 +33,111 @@ const TOOLS = [
   { label: "Inspirations", icon: "✦",  href: "/inspire",          badge: null },
 ];
 
+const FEATURE_TABS = [
+  {
+    id: "film",
+    label: "Film",
+    accent: "#6A4CFF",
+    accentBg: "rgba(106,76,255,.12)",
+    headline: "From idea to screen, end to end",
+    sub: "AI writes your script, plans every shot, and exports a shareable client review link — all in one project.",
+    cards: [
+      { icon: "✍", title: "AI Script Writer",  desc: "One idea becomes a full shooting script in seconds." },
+      { icon: "🎬", title: "Shot Storyboard",   desc: "Auto-generate visual boards from your scenes." },
+      { icon: "📖", title: "Film Bible",         desc: "Characters, world, tone — all organized in one place." },
+      { icon: "🔗", title: "Client Review",      desc: "Share a secure review link. No account needed for clients." },
+    ],
+    cta: { label: "Start a film →", href: "/projects" },
+  },
+  {
+    id: "video",
+    label: "Video",
+    accent: "#2F6BFF",
+    accentBg: "rgba(47,107,255,.12)",
+    headline: "Cinematic video in seconds",
+    sub: "Text to video, image to video, 10-second pro clips — all powered by Kling Pro 2.0.",
+    cards: [
+      { icon: "▶", title: "Text to Video",   desc: "Describe a scene. Get a 5-second cinematic clip." },
+      { icon: "⬛", title: "Image to Video", desc: "Animate any photo into a smooth, motion clip." },
+      { icon: "⚡", title: "10s Pro Video",  desc: "Longer, higher-quality video with Kling Pro." },
+      { icon: "🎥", title: "Camera Control", desc: "Zoom, pan, dolly — direct the virtual camera." },
+    ],
+    cta: { label: "Generate video →", href: "/studio" },
+  },
+  {
+    id: "image",
+    label: "Image",
+    accent: "#2BE4FF",
+    accentBg: "rgba(43,228,255,.10)",
+    headline: "Studio-quality images, any style",
+    sub: "FLUX 1.1 Pro, Ideogram, and more. From 3-credit quick drafts to 4K ultra-resolution.",
+    cards: [
+      { icon: "✦", title: "FLUX 1.1 Pro",          desc: "Best-in-class photorealism and artistic detail." },
+      { icon: "T", title: "Ideogram v2",             desc: "AI that actually gets text and typography right." },
+      { icon: "↑", title: "4× Upscale",             desc: "Sharpen and enlarge any image to print quality." },
+      { icon: "✂", title: "Remove Background",      desc: "One click — perfect transparent cutout every time." },
+    ],
+    cta: { label: "Create image →", href: "/create/image" },
+  },
+  {
+    id: "audio",
+    label: "Audio",
+    accent: "#A88FFF",
+    accentBg: "rgba(168,143,255,.12)",
+    headline: "Voice, music, sound — all AI",
+    sub: "Voiceovers, cloned voices, lip sync, and original scores. Everything your film's soundtrack needs.",
+    cards: [
+      { icon: "◎", title: "AI Voiceover",  desc: "50+ voices. Paste your script, get the read." },
+      { icon: "🎙", title: "Voice Clone",  desc: "Clone any voice from a 10-second sample." },
+      { icon: "◉", title: "Lip Sync",      desc: "Match any audio track to a talking-head video." },
+      { icon: "♪", title: "AI Music",      desc: "30-second original scores from a text description." },
+    ],
+    cta: { label: "Make audio →", href: "/tools/voiceover" },
+  },
+  {
+    id: "tools",
+    label: "Tools",
+    accent: "#7B84B5",
+    accentBg: "rgba(123,132,181,.12)",
+    headline: "Transform anything you've already made",
+    sub: "Edit, relight, inpaint, face swap — powerful post-production tools, AI-accelerated.",
+    cards: [
+      { icon: "⊙", title: "AI Relight",  desc: "Change the lighting of any photo in one prompt." },
+      { icon: "⬡", title: "Face Swap",   desc: "Swap faces between images or video frames." },
+      { icon: "✏", title: "Inpaint",     desc: "Edit any region of an image with a mask + prompt." },
+      { icon: "✂", title: "Video Edit",  desc: "Restyle footage with AI prompts and effects." },
+    ],
+    cta: { label: "Explore tools →", href: "/tools/relight" },
+  },
+] as const;
+
+const FAQ_ITEMS = [
+  {
+    q: "How does the credit system work?",
+    a: "Every generation costs credits based on the model and output type. A quick draft image is 3 credits, a pro image up to 25, a 5-second video 60–150. Credits never expire and stack with every purchase.",
+  },
+  {
+    q: "Can I use BuruStudio for commercial projects?",
+    a: "Yes. Maker pack and above include commercial rights. Film Pack covers unlimited projects. Free trial is personal use only. Full details on the Pricing page.",
+  },
+  {
+    q: "What is the Film workflow?",
+    a: "Film guides you from idea to screen: AI Script Writer → Shot Storyboard → Film Bible → Render via Studio → Client Review link. Everything lives in one project, organized by scene.",
+  },
+  {
+    q: "Which AI models are available?",
+    a: "FLUX Schnell, FLUX Dev, FLUX 1.1 Pro, Ideogram v2, Kling v1.6, Kling Pro 2.0, Kling Animate, MiniMax T2V, Stable Audio — plus voice, lip sync, face swap, relight, and more tools.",
+  },
+  {
+    q: "Is there a subscription or monthly fee?",
+    a: "No. BuruStudio is fully pay-as-you-go. Buy credits once, use them whenever you like. No auto-renewal, no monthly commitments, no surprises.",
+  },
+  {
+    q: "Can I pay in Nigerian Naira?",
+    a: "Yes — select Paystack at checkout to pay in NGN with any Nigerian debit or credit card. Credits are added to your account instantly after payment.",
+  },
+];
+
 const MARQUEE_ROW_1 = [
   "Kling Pro 2.0", "FLUX 1.1 Pro", "Ideogram 2.0", "Stable Video",
   "Kokoro TTS", "Stable Audio", "Face Swap Pro", "4× AI Upscale",
@@ -182,6 +287,8 @@ export default function Home() {
   const [mode, setMode] = useState<ModeId>("film");
   const [prompt, setPrompt] = useState("");
   const [activeSlide, setActiveSlide] = useState(0);
+  const [featureTab, setFeatureTab] = useState<string>("film");
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -327,6 +434,24 @@ export default function Home() {
           style={{ background: "linear-gradient(to top, #090B1A, transparent)" }} />
       </section>
 
+      {/* ── SOCIAL PROOF STRIP ─────────────────────────────────────────── */}
+      <div className="breakout py-6 px-4" style={{ borderTop: "1px solid #1E2140", background: "#090B1A" }}>
+        <div className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            { stat: "10+",    label: "AI models in one place" },
+            { stat: "4",      label: "Creative formats" },
+            { stat: "£0",     label: "No subscription needed" },
+            { stat: "∞",      label: "Credits never expire" },
+          ].map(({ stat, label }) => (
+            <div key={label} className="text-center space-y-1">
+              <p className="font-bold text-[#F2F6FF] text-2xl leading-none"
+                style={{ fontFamily: "var(--font-poppins)" }}>{stat}</p>
+              <p className="text-xs text-[#4A5280]">{label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ── MODEL MARQUEE ──────────────────────────────────────────────── */}
       <div className="breakout py-5 overflow-hidden"
         style={{ background: "#0D0F20", borderTop: "1px solid #1E2140", borderBottom: "1px solid #1E2140" }}>
@@ -420,54 +545,89 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── QUICK-START CARDS ──────────────────────────────────────────── */}
-      <section className="pb-10 px-4">
+      {/* ── FEATURE TABS ───────────────────────────────────────────────── */}
+      <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
-          <p className="text-center text-xs font-bold tracking-[0.18em] text-edge uppercase mb-6">
-            Start from a template
-          </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-            <Link href="/templates" className="v-card v-card-film flex flex-col gap-3" style={{ textDecoration: "none" }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold"
-                style={{ background: "rgba(106,76,255,.2)", color: "#A88FFF" }}>F</div>
-              <div>
-                <p className="font-display font-semibold text-white-hot text-sm">Short Film</p>
-                <p className="text-mist text-xs mt-1">Script → Storyboard → Render</p>
-              </div>
-              <span className="text-xs text-edge mt-auto">Use template →</span>
-            </Link>
-
-            <Link href="/create/image" className="v-card flex flex-col gap-3" style={{ textDecoration: "none" }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold"
-                style={{ background: "rgba(47,107,255,.2)", color: "#93c5fd" }}>I</div>
-              <div>
-                <p className="font-display font-semibold text-white-hot text-sm">Image</p>
-                <p className="text-mist text-xs mt-1">FLUX, Ideogram and more</p>
-              </div>
-              <span className="text-xs text-edge mt-auto">Generate →</span>
-            </Link>
-
-            <Link href="/studio" className="v-card flex flex-col gap-3" style={{ textDecoration: "none" }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold"
-                style={{ background: "rgba(43,228,255,.12)", color: "#2BE4FF" }}>V</div>
-              <div>
-                <p className="font-display font-semibold text-white-hot text-sm">Video</p>
-                <p className="text-mist text-xs mt-1">Kling Pro, text to video</p>
-              </div>
-              <span className="text-xs text-edge mt-auto">Generate →</span>
-            </Link>
-
-            <Link href="/tools/voiceover" className="v-card flex flex-col gap-3" style={{ textDecoration: "none" }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold"
-                style={{ background: "rgba(196,181,253,.12)", color: "#c4b5fd" }}>A</div>
-              <div>
-                <p className="font-display font-semibold text-white-hot text-sm">Voice &amp; Audio</p>
-                <p className="text-mist text-xs mt-1">Voiceover, Lip Sync, Clone</p>
-              </div>
-              <span className="text-xs text-edge mt-auto">Create →</span>
-            </Link>
+          <div className="text-center mb-10">
+            <p className="text-xs font-bold tracking-[0.18em] text-edge uppercase mb-3">What you can make</p>
+            <h2 className="font-display font-bold text-white-hot tracking-tight"
+              style={{ fontSize: "clamp(1.6rem, 4vw, 2.2rem)" }}>
+              One platform for every format
+            </h2>
           </div>
+
+          {/* Tab row */}
+          <div className="flex gap-1 p-1 rounded-xl mb-8 overflow-x-auto"
+            style={{ background: "#0D0F20", border: "1px solid #1E2140" }}>
+            {FEATURE_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setFeatureTab(tab.id)}
+                className="flex-1 min-w-[72px] py-2 px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-all"
+                style={featureTab === tab.id ? {
+                  background: tab.accentBg,
+                  color: tab.accent,
+                  border: `1px solid ${tab.accent}44`,
+                } : {
+                  color: "#4A5280",
+                  border: "1px solid transparent",
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab content */}
+          {FEATURE_TABS.map((tab) => (
+            <div
+              key={tab.id}
+              style={{ display: featureTab === tab.id ? "block" : "none" }}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+                <div>
+                  <h3 className="font-display font-bold text-white-hot text-xl mb-2">{tab.headline}</h3>
+                  <p className="text-mist text-sm max-w-lg leading-relaxed">{tab.sub}</p>
+                </div>
+                <Link
+                  href={tab.cta.href}
+                  className="shrink-0 inline-block px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
+                  style={{
+                    background: `linear-gradient(100deg, ${tab.accent}, ${tab.accent}cc)`,
+                    color: "#F2F6FF",
+                    textDecoration: "none",
+                    boxShadow: `0 6px 24px ${tab.accent}33`,
+                  }}
+                >
+                  {tab.cta.label}
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {tab.cards.map((card) => (
+                  <Link
+                    key={card.title}
+                    href={tab.cta.href}
+                    className="v-card flex flex-col gap-3 group"
+                    style={{ textDecoration: "none" }}
+                  >
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0"
+                      style={{ background: tab.accentBg, color: tab.accent, border: `1px solid ${tab.accent}33` }}>
+                      {card.icon}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-display font-semibold text-white-hot text-sm mb-1">{card.title}</p>
+                      <p className="text-mist text-xs leading-relaxed">{card.desc}</p>
+                    </div>
+                    <span className="text-xs transition-colors mt-auto"
+                      style={{ color: tab.accent, opacity: 0.7 }}>
+                      Try it →
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -539,13 +699,18 @@ export default function Home() {
             <div className="grid sm:grid-cols-2 gap-3">
               {VIDEO_MODELS.map((m) => (
                 <div key={m.id} className="v-card flex items-center justify-between gap-4">
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="font-semibold text-white-hot text-sm">{m.name}</p>
                     <p className="text-mist text-xs mt-0.5">{m.description}</p>
                   </div>
-                  <div className="text-right flex-shrink-0">
+                  <div className="text-right flex-shrink-0 space-y-1.5">
                     <p className="font-bold text-white-hot text-sm">{m.credits} cr</p>
                     <p className="text-edge text-xs">{creditsToGBP(m.credits)}</p>
+                    <Link href={`/studio?model=${m.id}`}
+                      className="block text-xs font-semibold px-2.5 py-1 rounded-lg transition-all"
+                      style={{ background: "rgba(106,76,255,.15)", color: "#A88FFF", border: "1px solid rgba(106,76,255,.25)", textDecoration: "none" }}>
+                      Create →
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -556,16 +721,60 @@ export default function Home() {
             <p className="text-xs font-bold text-edge uppercase tracking-[0.15em]">Image Generation</p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {IMAGE_MODELS.map((m) => (
-                <div key={m.id} className="v-card space-y-1">
+                <div key={m.id} className="v-card space-y-1 flex flex-col">
                   <p className="font-semibold text-white-hot text-sm">{m.name}</p>
-                  <p className="text-mist text-xs">{m.description}</p>
+                  <p className="text-mist text-xs flex-1">{m.description}</p>
                   <p className="font-bold text-white-hot text-xs pt-1">
                     {m.credits} cr{" "}
                     <span className="text-edge font-normal">{creditsToGBP(m.credits)}</span>
                   </p>
+                  <Link href={`/create/image?model=${m.id}`}
+                    className="block text-center text-xs font-semibold px-2 py-1.5 rounded-lg mt-2 transition-all"
+                    style={{ background: "rgba(43,228,255,.08)", color: "#2BE4FF", border: "1px solid rgba(43,228,255,.2)", textDecoration: "none" }}>
+                    Create →
+                  </Link>
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ────────────────────────────────────────────────────────── */}
+      <section className="py-16 px-4" style={{ borderTop: "1px solid #1E2140" }}>
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-xs font-bold tracking-[0.18em] text-edge uppercase mb-3">FAQ</p>
+            <h2 className="font-display font-bold text-white-hot tracking-tight"
+              style={{ fontSize: "clamp(1.6rem, 4vw, 2.2rem)" }}>
+              Common questions
+            </h2>
+          </div>
+          <div className="space-y-2">
+            {FAQ_ITEMS.map((item, i) => (
+              <div key={i} className="v-card overflow-hidden"
+                style={{ padding: 0, border: openFaq === i ? "1px solid rgba(106,76,255,.4)" : undefined }}>
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between gap-4 text-left px-5 py-4"
+                >
+                  <span className="text-sm font-medium text-white-hot">{item.q}</span>
+                  <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-all"
+                    style={{
+                      background: openFaq === i ? "rgba(106,76,255,.2)" : "rgba(255,255,255,.04)",
+                      color: openFaq === i ? "#A88FFF" : "#4A5280",
+                      transform: openFaq === i ? "rotate(45deg)" : "none",
+                    }}>
+                    +
+                  </span>
+                </button>
+                {openFaq === i && (
+                  <div className="px-5 pb-4">
+                    <p className="text-sm text-mist leading-relaxed">{item.a}</p>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
