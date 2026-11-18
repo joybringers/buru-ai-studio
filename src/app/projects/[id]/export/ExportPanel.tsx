@@ -20,7 +20,7 @@ const STEPS: { key: keyof Checklist; label: string; icon: string; href: (id: str
 
 export default function ExportPanel({
   projectId, projectTitle, reviewToken: initialToken,
-  checklist, stats, timelineLocked,
+  checklist, stats,
   aiLabelAccepted: initialLabel,
   continuityNotes: initialContinuity,
   hasScript,
@@ -30,7 +30,6 @@ export default function ExportPanel({
   reviewToken: string | null;
   checklist: Checklist;
   stats: Stats;
-  timelineLocked: boolean;
   aiLabelAccepted: boolean;
   continuityNotes: string;
   hasScript: boolean;
