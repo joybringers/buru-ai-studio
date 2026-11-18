@@ -1,6 +1,7 @@
 "use client";
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import BuruLogo from "@/components/BuruLogo";
 
 type Character = {
   id: string; name: string; role: string; age: string;
@@ -82,6 +83,7 @@ export default function BibleEditor({
     <div className="min-h-screen bg-[#090B1A] text-[#F2F6FF]">
       {/* Header */}
       <div className="border-b border-[#1E2140] bg-[#121530] px-6 py-4 flex items-center gap-4">
+        <Link href="/" style={{ textDecoration: "none" }} className="shrink-0"><BuruLogo /></Link>
         <Link href={`/projects/${projectId}/script`} className="text-[#A8B0D8] hover:text-[#F2F6FF] text-sm">← Script</Link>
         <div className="flex-1">
           <div className="text-xs text-[#A8B0D8]">{projectTitle}</div>

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
+import BuruLogo from "@/components/BuruLogo";
 
 type Shot = {
   id: string;
@@ -126,6 +127,7 @@ export default function StoryboardGrid({
     <div className="min-h-screen bg-[#090B1A] text-[#F2F6FF]">
       {/* Header */}
       <div className="border-b border-[#1E2140] bg-[#121530] px-6 py-4 flex items-center gap-4 flex-wrap">
+        <Link href="/" style={{ textDecoration: "none" }} className="shrink-0"><BuruLogo /></Link>
         <Link href={`/projects/${projectId}/bible`} className="text-[#A8B0D8] hover:text-[#F2F6FF] text-sm">← Bible</Link>
         <div className="flex-1 min-w-0">
           <div className="text-xs text-[#A8B0D8] truncate">{projectTitle}</div>

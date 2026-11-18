@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import BuruLogo from "@/components/BuruLogo";
 
 export default async function ReviewPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -34,8 +36,11 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
   return (
     <div className="min-h-screen bg-[#090B1A] text-[#F2F6FF] font-sans">
       {/* Header */}
-      <div className="border-b border-[#1E2140] bg-[#121530] px-6 py-6 text-center">
-        <div className="text-xs text-[#6A4CFF] uppercase tracking-widest mb-2">BuruStudio · Film Review</div>
+      <div className="border-b border-[#1E2140] bg-[#121530] px-6 py-6 text-center relative">
+        <Link href="/" className="absolute left-6 top-1/2 -translate-y-1/2" style={{ textDecoration: "none" }}>
+          <BuruLogo />
+        </Link>
+        <div className="text-xs text-[#6A4CFF] uppercase tracking-widest mb-2">Film Review</div>
         <h1 className="text-2xl font-bold text-[#F2F6FF]">{project.title}</h1>
         <div className="mt-2 flex items-center justify-center gap-4 text-xs text-[#A8B0D8]">
           <span>{scenes.length} scene{scenes.length !== 1 ? "s" : ""}</span>

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
+import BuruLogo from "@/components/BuruLogo";
 
 type Scene = {
   id: string;
@@ -111,6 +112,7 @@ export default function ScriptEditor({ initialData }: Props) {
       <div className="flex flex-col w-full max-w-sm lg:max-w-md border-r border-[#1E2140] flex-shrink-0">
         {/* Header */}
         <div className="px-4 py-3 border-b border-[#1E2140] bg-[#121530] flex items-center gap-3">
+          <Link href="/" style={{ textDecoration: "none" }} className="shrink-0"><BuruLogo /></Link>
           <Link href={`/projects/${initialData.id}/quote`} className="text-[#A8B0D8] hover:text-[#F2F6FF] text-sm">←</Link>
           <div className="flex-1 min-w-0">
             <div className="text-xs text-[#A8B0D8] truncate">{initialData.title}</div>

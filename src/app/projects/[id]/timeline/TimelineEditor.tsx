@@ -1,6 +1,7 @@
 "use client";
 import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import BuruLogo from "@/components/BuruLogo";
 
 type Shot = {
   id: string; sceneId: string; sceneTitle: string; shotNumber: number;
@@ -135,6 +136,7 @@ export default function TimelineEditor({
     <div className="min-h-screen bg-[#090B1A] text-[#F2F6FF] flex flex-col">
       {/* Header */}
       <div className="border-b border-[#1E2140] bg-[#121530] px-6 py-4 flex items-center gap-4 flex-wrap flex-shrink-0">
+        <Link href="/" style={{ textDecoration: "none" }} className="shrink-0"><BuruLogo /></Link>
         <Link href={`/projects/${projectId}/storyboard`} className="text-[#A8B0D8] hover:text-[#F2F6FF] text-sm">← Storyboard</Link>
         <div className="flex-1 min-w-0">
           <div className="text-xs text-[#A8B0D8] truncate">{projectTitle}</div>
