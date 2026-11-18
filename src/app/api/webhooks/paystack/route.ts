@@ -15,18 +15,25 @@ export async function POST(req: NextRequest) {
 
   const event = JSON.parse(body);
 
-  // Forward non-Buru events to ChurchCompass webhook
+  // Route non-Buru events to the correct app webhook.
+  // To add a new app: set APP_WEBHOOK_<APPNAME>=<url> in env vars,
+  // and tag its Paystack payments with metadata.app = "<appname>".
+  const FORWARD_URLS: Record<string, string> = {
+    churchcompass: process.env.APP_WEBHOOK_CHURCHCOMPASS ?? "https://churchcompass.elmorilx.com/api/paystack/webhook",
+    sandlink:      process.env.APP_WEBHOOK_SANDLINK      ?? "",
+    coseng:        process.env.APP_WEBHOOK_COSENG        ?? "",
+  };
+
   const app = event.data?.metadata?.app;
   if (app && app !== "buru") {
-    const ccUrl = process.env.CHURCHCOMPASS_WEBHOOK_URL ?? "https://churchcompass.elmorilx.com/api/paystack/webhook";
-    await fetch(ccUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-paystack-signature": signature,
-      },
-      body,
-    }).catch(() => {}); // best-effort forward
+    const forwardUrl = FORWARD_URLS[app] || process.env[`APP_WEBHOOK_${app.toUpperCase()}`] || "";
+    if (forwardUrl) {
+      await fetch(forwardUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-paystack-signature": signature },
+        body,
+      }).catch(() => {});
+    }
     return NextResponse.json({ received: true });
   }
 
