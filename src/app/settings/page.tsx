@@ -10,7 +10,7 @@ export default async function SettingsPage() {
   if (!session?.user?.id) redirect("/auth/signin");
   const userId = session.user.id;
 
-  const [user, ledger, jobs] = await Promise.all([
+  const [user, ledger, jobs, referralEntries] = await Promise.all([
     prisma.user.findUniqueOrThrow({ where: { id: userId } }),
     prisma.creditLedgerEntry.findMany({
       where: { userId },
@@ -31,15 +31,25 @@ export default async function SettingsPage() {
         resultUrl: true,
       },
     }),
+    prisma.creditLedgerEntry.findMany({
+      where: { userId, reason: "referral_bonus_sent" },
+      select: { delta: true },
+    }),
   ]);
+
+  const referralCount = referralEntries.length;
+  const referralCredits = referralEntries.reduce((sum, e) => sum + e.delta, 0);
 
   return (
     <SettingsClient
       data={{
+        userId,
         name: user.name,
         email: user.email,
         createdAt: user.createdAt.toISOString(),
         balance: user.creditBalance,
+        referralCount,
+        referralCredits,
         recentLedger: ledger.map((e) => ({
           id: e.id,
           delta: e.delta,

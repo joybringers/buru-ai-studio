@@ -1,10 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import BuruLogo from "@/components/BuruLogo";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref) {
+      try { localStorage.setItem("pendingRef", ref); } catch {}
+    }
+  }, []);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [sent, setSent] = useState(false);

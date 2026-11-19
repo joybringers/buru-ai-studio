@@ -1,12 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { signOut } from "next-auth/react";
 import { creditsToGBP } from "@/config";
 
 interface SettingsData {
+  userId: string;
   name: string | null;
   email: string;
   createdAt: string;
   balance: number;
+  referralCount: number;
+  referralCredits: number;
   recentLedger: Array<{ id: string; delta: number; reason: string; createdAt: string }>;
   recentJobs: Array<{
     id: string;
@@ -21,8 +25,11 @@ interface SettingsData {
 
 function reasonLabel(reason: string) {
   if (reason === "stripe_topup") return "Top-up";
+  if (reason === "paystack_topup") return "Top-up";
   if (reason === "image_gen" || reason === "video_gen") return "Generation";
   if (reason === "admin") return "Admin";
+  if (reason === "referral_bonus_sent") return "Referral (you referred)";
+  if (reason === "referral_bonus_received") return "Referral (welcome bonus)";
   return reason;
 }
 
@@ -38,6 +45,38 @@ export default function SettingsClient({ data }: { data: SettingsData }) {
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
   const [error, setError]     = useState<string | null>(null);
+
+  // Referral
+  const [referralLink, setReferralLink] = useState("");
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    setReferralLink(`${window.location.origin}/auth/signin?ref=${data.userId}`);
+  }, [data.userId]);
+
+  function copyLink() {
+    navigator.clipboard.writeText(referralLink).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  // Account deletion
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function deleteAccount() {
+    setDeleting(true);
+    setDeleteError(null);
+    const res = await fetch("/api/settings/account", { method: "DELETE" });
+    if (!res.ok) {
+      const d = await res.json() as { error?: string };
+      setDeleteError(d.error ?? "Deletion failed");
+      setDeleting(false);
+      return;
+    }
+    await signOut({ callbackUrl: "/" });
+  }
 
   async function saveName() {
     setSaving(true);
@@ -145,6 +184,46 @@ export default function SettingsClient({ data }: { data: SettingsData }) {
         </div>
       </section>
 
+      {/* Refer & Earn */}
+      <section className="space-y-5">
+        <h2 className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">Refer &amp; Earn</h2>
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 divide-y divide-zinc-800">
+
+          <div className="px-5 py-5 space-y-3">
+            <p className="text-sm text-zinc-300 leading-relaxed">
+              Share your referral link. When someone signs up and uses BuruStudio, you both get{" "}
+              <span className="font-semibold text-indigo-400">20 free credits</span>.
+            </p>
+            <div className="flex gap-2">
+              <input
+                readOnly
+                value={referralLink}
+                className="flex-1 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 px-4 py-2.5 text-xs font-mono focus:outline-none select-all truncate"
+                onFocus={(e) => e.target.select()}
+              />
+              <button
+                onClick={copyLink}
+                className="shrink-0 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
+              >
+                {copied ? "Copied ✓" : "Copy"}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-around px-5 py-4">
+            <div className="text-center">
+              <p className="text-2xl font-black text-zinc-100">{data.referralCount}</p>
+              <p className="text-xs text-zinc-500 mt-0.5">friends referred</p>
+            </div>
+            <div className="w-px h-10 bg-zinc-800" />
+            <div className="text-center">
+              <p className="text-2xl font-black text-indigo-400">+{data.referralCredits}</p>
+              <p className="text-xs text-zinc-500 mt-0.5">credits earned</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Recent jobs */}
       <section className="space-y-5">
         <h2 className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">Recent creations</h2>
@@ -186,6 +265,50 @@ export default function SettingsClient({ data }: { data: SettingsData }) {
             </table>
           </div>
         )}
+      </section>
+
+      {/* Danger zone */}
+      <section className="space-y-5">
+        <h2 className="text-xs font-bold text-red-500/70 uppercase tracking-[0.2em]">Danger zone</h2>
+        <div className="rounded-2xl border border-red-900/40 bg-red-950/10 px-5 py-5 space-y-3">
+          <div>
+            <p className="text-sm font-semibold text-zinc-200">Delete account</p>
+            <p className="text-xs text-zinc-500 mt-0.5">
+              Permanently removes your account, all creations, and credit balance. This cannot be undone.
+            </p>
+          </div>
+
+          {!deleteConfirm ? (
+            <button
+              onClick={() => setDeleteConfirm(true)}
+              className="px-4 py-2 rounded-xl border border-red-800/60 text-red-400 hover:bg-red-900/20 text-sm font-medium transition-colors"
+            >
+              Delete my account
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-red-400 font-medium">
+                Are you sure? This deletes everything and cannot be undone.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={deleteAccount}
+                  disabled={deleting}
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                  {deleting ? "Deleting…" : "Yes, delete permanently"}
+                </button>
+                <button
+                  onClick={() => { setDeleteConfirm(false); setDeleteError(null); }}
+                  className="px-4 py-2 rounded-xl border border-zinc-700 text-zinc-400 hover:text-zinc-200 text-sm transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+              {deleteError && <p className="text-xs text-red-400">{deleteError}</p>}
+            </div>
+          )}
+        </div>
       </section>
 
     </div>

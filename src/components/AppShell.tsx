@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 
@@ -11,6 +12,20 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMarketing = MARKETING_PATHS.includes(pathname);
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    let ref: string | null = null;
+    try { ref = localStorage.getItem("pendingRef"); } catch {}
+    if (!ref) return;
+    try { localStorage.removeItem("pendingRef"); } catch {}
+    fetch("/api/referral/claim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ referrerId: ref }),
+    }).catch(() => {});
+  }, [session?.user?.id]);
 
   if (AUTH_PATHS.some((p) => pathname.startsWith(p))) {
     return <>{children}</>;
