@@ -123,7 +123,7 @@ type Phase = "idle" | "uploading" | "generating" | "done" | "error";
 
 const POLL_INTERVAL_MS = 2500;
 const IMAGE_POLL_TIMEOUT_MS = 120_000;
-const VIDEO_POLL_TIMEOUT_MS = 360_000;
+const VIDEO_POLL_TIMEOUT_MS = 900_000; // 15 min — fal.ai webhook handles it if browser gives up
 
 function sleep(ms: number) { return new Promise<void>((r) => setTimeout(r, ms)); }
 

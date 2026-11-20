@@ -308,8 +308,12 @@ export async function submit(
   if (!process.env.FAL_KEY) throw new Error("FAL_KEY env var is not set");
 
   const endpoint = falEndpoint(modelId);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const webhookUrl = appUrl ? `${appUrl}/api/webhooks/fal` : undefined;
+
   const { request_id } = await fal.queue.submit(endpoint, {
     input: buildInput(prompt, modelId, aspectRatio, imageUrl, opts),
+    ...(webhookUrl ? { webhookUrl } : {}),
   });
   return request_id;
 }
