@@ -14,13 +14,15 @@ export default async function GalleryPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  const assets: GalleryAsset[] = rows.map((r) => ({
-    id: r.id,
-    url: r.url,
-    mimeType: r.mimeType,
-    createdAt: r.createdAt.toISOString(),
-    job: { prompt: r.job.prompt, modelId: r.job.modelId },
-  }));
+  const assets: GalleryAsset[] = rows
+    .filter((r) => r.job !== null)
+    .map((r) => ({
+      id: r.id,
+      url: r.url,
+      mimeType: r.mimeType,
+      createdAt: r.createdAt.toISOString(),
+      job: { prompt: r.job!.prompt, modelId: r.job!.modelId },
+    }));
 
   return <GalleryClient assets={assets} />;
 }

@@ -12,23 +12,26 @@ export default function TemplatesPage() {
     if (!tpl) return;
     setCreating(templateId);
 
-    // Create project
-    const res = await fetch("/api/projects", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: tpl.title, targetLength: tpl.targetLength }),
-    });
-    const project = await res.json();
-    if (!res.ok) { setCreating(null); return; }
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: tpl.title, targetLength: tpl.targetLength }),
+      });
+      const project = await res.json() as { id?: string };
+      if (!res.ok || !project.id) { setCreating(null); return; }
 
-    // Seed script with starter chat message
-    await fetch(`/api/projects/${project.id}/script/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: tpl.starterPrompt }),
-    });
+      // Fire-and-forget seed — don't block navigation on the AI call
+      fetch(`/api/projects/${project.id}/script/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: tpl.starterPrompt }),
+      }).catch(() => {});
 
-    router.push(`/projects/${project.id}/script`);
+      router.push(`/projects/${project.id}/script`);
+    } catch {
+      setCreating(null);
+    }
   };
 
   return (

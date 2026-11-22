@@ -41,10 +41,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json() as { messages: Anthropic.MessageParam[] };
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: "Chat is not configured" }, { status: 503 });
+  }
+
+  let body: { messages: Anthropic.MessageParam[] };
+  try {
+    body = await req.json() as { messages: Anthropic.MessageParam[] };
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
   const { messages } = body;
 
-  const stream = await client.messages.stream({
+  const stream = client.messages.stream({
     model: "claude-haiku-5-5",
     max_tokens: 1024,
     system: SYSTEM_PROMPT,
@@ -54,15 +64,21 @@ export async function POST(req: NextRequest) {
   const readable = new ReadableStream({
     async start(controller) {
       const enc = new TextEncoder();
-      for await (const chunk of stream) {
-        if (
-          chunk.type === "content_block_delta" &&
-          chunk.delta.type === "text_delta"
-        ) {
-          controller.enqueue(enc.encode(chunk.delta.text));
+      try {
+        for await (const chunk of stream) {
+          if (
+            chunk.type === "content_block_delta" &&
+            chunk.delta.type === "text_delta"
+          ) {
+            controller.enqueue(enc.encode(chunk.delta.text));
+          }
         }
+      } catch (err) {
+        console.error("[chat] stream error:", err);
+        controller.enqueue(enc.encode("\n\nSomething went wrong with the AI service. Please try again."));
+      } finally {
+        controller.close();
       }
-      controller.close();
     },
   });
 
