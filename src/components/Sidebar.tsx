@@ -223,6 +223,14 @@ function FilmIcon() {
   );
 }
 
+function DirectorIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 2 9.5 6h4.5l-3.5 2.5 1.5 4.5L8 10.5 4.5 13 6 8.5 2.5 6H7L8 2Z"/>
+    </svg>
+  );
+}
+
 function SettingsIcon() {
   return (
     <svg viewBox="0 0 16 16" fill="none" className="w-full h-full" stroke="currentColor" strokeWidth="1.4">
@@ -279,6 +287,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <div className="space-y-0.5">
             <SectionLabel label="Create" />
             <NavLink href="/chat" label="Chat Mode" icon={<ChatIcon />} badge="AI" onNavigate={onNavigate} />
+            <NavLink href="/director" label="Director Mode" icon={<DirectorIcon />} badge="NEW" onNavigate={onNavigate} />
             <NavLink href="/studio" label="Studio" icon={<StudioIcon />} onNavigate={onNavigate} />
             <NavLink href="/create" label="Quick Starts" icon={<GridIcon />} onNavigate={onNavigate} />
           </div>
