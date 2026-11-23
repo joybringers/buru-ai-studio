@@ -247,7 +247,7 @@ export default function DirectorProjectPage() {
 
                   <div className="rounded-xl p-3 text-xs text-[#7B84B5] leading-relaxed italic"
                     style={{ background: "#090B1A", border: "1px solid rgba(30,33,64,0.8)" }}>
-                    "{scene.videoPrompt}"
+                    &ldquo;{scene.videoPrompt}&rdquo;
                   </div>
 
                   {(scene.status === "idle" || scene.status === "failed") && !generating[scene.id] && (
