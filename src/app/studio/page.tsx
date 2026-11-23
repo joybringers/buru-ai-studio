@@ -600,47 +600,53 @@ export default function StudioPage() {
             </div>
           )}
 
-          {/* Model selector */}
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Image</p>
-            <div className="grid grid-cols-2 gap-2">
-              {IMAGE_MODELS.map((m) => (
-                <ModelCard key={m.id} model={m} selected={modelId === m.id}
-                  onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
-              ))}
-            </div>
-          </div>
+          {/* Model selector — compact chips */}
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Model</p>
 
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Text → Video</p>
-            <div className="grid grid-cols-2 gap-2">
-              {T2V_MODELS.filter((m) => !m.id.endsWith("-pro")).map((m) => (
-                <ModelCard key={m.id} model={m} selected={["kling-t2v","kling-t2v-pro"].includes(modelId) ? m.id === "kling-t2v" : modelId === m.id}
-                  onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
-              ))}
+            <div className="space-y-2">
+              <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Image</p>
+              <div className="flex flex-wrap gap-1.5">
+                {IMAGE_MODELS.map((m) => (
+                  <ModelChip key={m.id} model={m} selected={modelId === m.id}
+                    onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Image → Video</p>
-            <div className="grid grid-cols-2 gap-2">
-              {I2V_MODELS.filter((m) => !m.id.endsWith("-pro")).map((m) => (
-                <ModelCard key={m.id} model={m} selected={["kling-i2v","kling-i2v-pro"].includes(modelId) ? m.id === "kling-i2v" : modelId === m.id}
-                  onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
-              ))}
+            <div className="space-y-2">
+              <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Text → Video</p>
+              <div className="flex flex-wrap gap-1.5">
+                {T2V_MODELS.filter((m) => !m.id.endsWith("-pro")).map((m) => (
+                  <ModelChip key={m.id} model={m}
+                    selected={["kling-t2v","kling-t2v-pro"].includes(modelId) ? m.id === "kling-t2v" : modelId === m.id}
+                    onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
+                ))}
+              </div>
             </div>
-            <p className="text-xs text-zinc-700">Upload any image · generates a 5-second animated clip · ~3–5 min</p>
-          </div>
 
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Audio</p>
-            <div className="grid grid-cols-2 gap-2">
-              {AUDIO_MODELS.map((m) => (
-                <ModelCard key={m.id} model={m} selected={modelId === m.id}
-                  onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
-              ))}
+            <div className="space-y-2">
+              <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Image → Video</p>
+              <div className="flex flex-wrap gap-1.5">
+                {I2V_MODELS.filter((m) => !m.id.endsWith("-pro")).map((m) => (
+                  <ModelChip key={m.id} model={m}
+                    selected={["kling-i2v","kling-i2v-pro"].includes(modelId) ? m.id === "kling-i2v" : modelId === m.id}
+                    onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
+                ))}
+              </div>
+              <p className="text-xs text-zinc-700">Upload an image · 5-sec clip · ~3–5 min</p>
             </div>
-            <p className="text-xs text-zinc-700">Describe music or a sound effect · generates 30-second audio</p>
+
+            <div className="space-y-2">
+              <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Audio</p>
+              <div className="flex flex-wrap gap-1.5">
+                {AUDIO_MODELS.map((m) => (
+                  <ModelChip key={m.id} model={m} selected={modelId === m.id}
+                    onSelect={() => setModelId(m.id)} disabled={phase === "generating"} />
+                ))}
+              </div>
+              <p className="text-xs text-zinc-700">30-second AI music or sound</p>
+            </div>
           </div>
 
           {/* Quality selector — image models */}
@@ -996,24 +1002,22 @@ export default function StudioPage() {
   );
 }
 
-function ModelCard({
+function ModelChip({
   model, selected, onSelect, disabled,
 }: {
   model: Model; selected: boolean; onSelect?: () => void; disabled?: boolean;
 }) {
   return (
     <button onClick={onSelect} disabled={disabled}
-      className={`rounded-xl border p-3 text-left transition-all ${
-        disabled ? "cursor-not-allowed border-zinc-800 bg-zinc-900 opacity-60"
-        : selected ? "border-indigo-500 ring-1 ring-indigo-500/20 bg-indigo-950/30"
-        : "border-zinc-800 bg-zinc-900 hover:border-zinc-700 hover:bg-zinc-800/60"
+      className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs transition-all ${
+        disabled ? "cursor-not-allowed opacity-60 border-zinc-800 bg-zinc-900"
+        : selected ? "border-indigo-500 bg-indigo-950/40 text-indigo-200"
+        : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
       }`}>
-      <p className="text-xs font-semibold text-zinc-200 leading-tight">{model.name}</p>
-      <p className="text-xs text-zinc-600 mt-0.5 leading-snug">{model.description}</p>
-      <p className="text-xs font-semibold text-zinc-100 mt-1.5">
+      <span className="font-medium">{model.name}</span>
+      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${selected ? "bg-indigo-500/30 text-indigo-300" : "bg-zinc-800 text-zinc-500"}`}>
         {model.credits} cr
-        <span className="text-xs font-normal text-zinc-600 ml-1">{creditsToGBP(model.credits)}</span>
-      </p>
+      </span>
     </button>
   );
 }
