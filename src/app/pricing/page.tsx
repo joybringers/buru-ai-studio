@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
 import { useSignInModal } from "@/context/SignInModalContext";
 
 const GBP_TO_USD = 1.25;
