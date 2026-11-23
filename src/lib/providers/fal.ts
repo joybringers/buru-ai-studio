@@ -309,7 +309,8 @@ export async function submit(
 
   const endpoint = falEndpoint(modelId);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  const webhookUrl = appUrl ? `${appUrl}/api/webhooks/fal` : undefined;
+  const isPublicUrl = appUrl.startsWith("https://");
+  const webhookUrl = isPublicUrl ? `${appUrl}/api/webhooks/fal` : undefined;
 
   const { request_id } = await fal.queue.submit(endpoint, {
     input: buildInput(prompt, modelId, aspectRatio, imageUrl, opts),
