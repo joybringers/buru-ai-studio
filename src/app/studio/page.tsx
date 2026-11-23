@@ -307,7 +307,7 @@ export default function StudioPage() {
         body: JSON.stringify({
           prompt: finalPrompt || "animate naturally",
           modelId: effectiveModelId,
-          ...(isVideoModel ? {} : { aspectRatio }),
+          aspectRatio,
           ...(isI2V && uploadedImageUrl ? { imageUrl: uploadedImageUrl } : {}),
           ...(isKling ? { duration: videoDuration } : {}),
           ...(!isVideoModel && !isAudioModel ? { imageQuality } : {}),
@@ -730,13 +730,28 @@ export default function StudioPage() {
               </p>
             )}
             <button disabled={!canGenerate} onClick={handleGenerate}
-              className={`w-full py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`w-full py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                 canGenerate
                   ? "bg-indigo-600 hover:bg-indigo-500 text-white"
+                  : phase === "generating"
+                  ? "bg-indigo-900/60 text-indigo-300 cursor-not-allowed"
                   : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
               }`}>
-              {isI2V ? "Animate image" : isVideoModel ? "Generate video" : isAudioModel ? "Generate audio" : "Generate image"} · {displayCredits} cr
+              {phase === "generating" ? (
+                <>
+                  <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
+                    <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                  </svg>
+                  {isVideoModel ? `Generating… ${elapsed}s` : isAudioModel ? `Composing… ${elapsed}s` : `Generating… ${elapsed}s`}
+                </>
+              ) : (
+                <>{isI2V ? "Animate image" : isVideoModel ? "Generate video" : isAudioModel ? "Generate audio" : "Generate image"} · {displayCredits} cr</>
+              )}
             </button>
+            {phase === "generating" && isVideoModel && (
+              <p className="text-xs text-zinc-600 text-center">Video takes 3–8 min — stay on this page</p>
+            )}
             <div className="flex justify-between items-center text-xs text-zinc-600">
               <span>Balance: {balance} cr</span>
               <a href="/billing" className="hover:text-indigo-400 transition-colors">Top up →</a>
