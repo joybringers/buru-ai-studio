@@ -743,14 +743,33 @@ export default function StudioPage() {
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
                     <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
                   </svg>
-                  {isVideoModel ? `Generating… ${elapsed}s` : isAudioModel ? `Composing… ${elapsed}s` : `Generating… ${elapsed}s`}
+                  {isVideoModel ? `Generating video… ${elapsed}s` : isAudioModel ? `Composing… ${elapsed}s` : `Generating… ${elapsed}s`}
                 </>
               ) : (
                 <>{isI2V ? "Animate image" : isVideoModel ? "Generate video" : isAudioModel ? "Generate audio" : "Generate image"} · {displayCredits} cr</>
               )}
             </button>
-            {phase === "generating" && isVideoModel && (
-              <p className="text-xs text-zinc-600 text-center">Video takes 3–8 min — stay on this page</p>
+            {phase === "generating" && (
+              <div className="space-y-1.5">
+                {/* Progress bar */}
+                <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-indigo-500 rounded-full transition-all duration-1000"
+                    style={{
+                      width: isVideoModel
+                        ? `${Math.min(95, elapsed < 30 ? (elapsed / 30) * 15 : 15 + ((Math.min(elapsed, 480) - 30) / 450) * 80)}%`
+                        : isAudioModel
+                        ? `${Math.min(95, (elapsed / 60) * 95)}%`
+                        : `${Math.min(95, (elapsed / 25) * 95)}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-zinc-600 text-center">
+                  {isVideoModel
+                    ? elapsed < 60 ? "Submitting to fal.ai…" : elapsed < 180 ? "Processing… usually 3–5 min" : elapsed < 360 ? "Still generating — hang tight…" : "Almost there…"
+                    : isAudioModel ? "Composing audio…" : "Generating image…"}
+                </p>
+              </div>
             )}
             <div className="flex justify-between items-center text-xs text-zinc-600">
               <span>Balance: {balance} cr</span>
