@@ -1,13 +1,18 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { FILM_TEMPLATES } from "@/lib/templates";
+import { useSignInModal } from "@/context/SignInModalContext";
 
 export default function TemplatesPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const { open: openSignIn } = useSignInModal();
   const [creating, setCreating] = useState<string | null>(null);
 
   const startFromTemplate = async (templateId: string) => {
+    if (!session?.user?.id) { openSignIn(); return; }
     const tpl = FILM_TEMPLATES.find((t) => t.id === templateId);
     if (!tpl) return;
     setCreating(templateId);
