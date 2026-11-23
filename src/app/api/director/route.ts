@@ -37,12 +37,14 @@ export async function POST(req: Request) {
   if (!concept?.trim()) return NextResponse.json({ error: "concept is required" }, { status: 400 });
 
   // Ask Claude to break the concept into 4-6 scenes
-  const message = await client.messages.create({
-    model: "claude-haiku-5-5",
-    max_tokens: 1024,
-    messages: [{
-      role: "user",
-      content: `You are a video director AI. Break this video concept into 4-6 scenes for a short film.
+  let text = "";
+  try {
+    const message = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 1024,
+      messages: [{
+        role: "user",
+        content: `You are a video director AI. Break this video concept into 4-6 scenes for a short film.
 
 Concept: "${concept.trim()}"
 
@@ -54,15 +56,21 @@ Return ONLY a JSON array (no markdown, no explanation) where each item has:
 - mood: string (one word: dramatic, serene, intense, mysterious, joyful, etc.)
 
 Make sure the scenes tell a coherent story arc. Keep videoPrompts vivid, cinematic and descriptive.`,
-    }],
-  });
+      }],
+    });
+    text = message.content[0].type === "text" ? message.content[0].text : "";
+  } catch (err) {
+    console.error("Anthropic API error:", err);
+    return NextResponse.json({ error: "AI service unavailable" }, { status: 503 });
+  }
 
   let scenes: SceneSpec[] = [];
-  const text = message.content[0].type === "text" ? message.content[0].text : "";
   try {
-    const cleaned = text.replace(/```json|```/g, "").trim();
-    scenes = JSON.parse(cleaned) as SceneSpec[];
-    if (!Array.isArray(scenes)) throw new Error("not array");
+    // Extract the first JSON array found in the response (handles markdown wrapping)
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error("no JSON array in response");
+    scenes = JSON.parse(jsonMatch[0]) as SceneSpec[];
+    if (!Array.isArray(scenes) || scenes.length === 0) throw new Error("empty or non-array result");
   } catch {
     return NextResponse.json({ error: "AI failed to generate scenes", raw: text }, { status: 500 });
   }
