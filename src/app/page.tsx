@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { CREDIT_PACKS, MODELS, creditsToGBP } from "@/config";
 import RefCapture from "@/components/RefCapture";
+import { useSignInModal } from "@/context/SignInModalContext";
+import { useSession } from "next-auth/react";
 
 const MODES = [
   { id: "film",  label: "Film",  href: "/projects" },
@@ -284,6 +286,8 @@ function ShowcaseVisual({ visual, accent }: { visual: string; accent: string }) 
 
 export default function Home() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const { open: openSignIn } = useSignInModal();
   const [mode, setMode] = useState<ModeId>("film");
   const [prompt, setPrompt] = useState("");
   const [activeSlide, setActiveSlide] = useState(0);
@@ -300,6 +304,8 @@ export default function Home() {
   const submit = () => {
     const m = MODES.find((x) => x.id === mode);
     if (!m) return;
+    // Film mode requires auth — open modal instead of redirecting to /projects
+    if (mode === "film" && !session?.user?.id) { openSignIn(); return; }
     const href =
       prompt && mode !== "film"
         ? `${m.href}${m.href.includes("?") ? "&" : "?"}prompt=${encodeURIComponent(prompt)}`
@@ -819,11 +825,12 @@ export default function Home() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/auth/signin"
+                  <button
+                    onClick={openSignIn}
                     className={isPopular ? "v-btn v-btn-primary" : "v-btn v-btn-ghost"}
-                    style={{ display: "block", textAlign: "center", textDecoration: "none" }}>
+                    style={{ display: "block", width: "100%", textAlign: "center", cursor: "pointer" }}>
                     Get started
-                  </Link>
+                  </button>
                 </div>
               );
             })}
@@ -866,10 +873,10 @@ export default function Home() {
               Get 50 free credits instantly.
             </p>
 
-            <Link href="/auth/signin" className="v-btn v-btn-primary relative"
-              style={{ textDecoration: "none", fontSize: 15, padding: "14px 40px" }}>
+            <button onClick={openSignIn} className="v-btn v-btn-primary relative"
+              style={{ fontSize: 15, padding: "14px 40px", cursor: "pointer" }}>
               Start creating free →
-            </Link>
+            </button>
           </div>
         </div>
       </section>

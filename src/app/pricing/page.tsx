@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useSignInModal } from "@/context/SignInModalContext";
 
 const GBP_TO_USD = 1.25;
 const GBP_TO_NGN = 2000;
@@ -139,6 +140,7 @@ function FeatureValue({ value }: { value: boolean | string }) {
 
 export default function PricingPage() {
   const [currency, setCurrency] = useState<Currency>("GBP");
+  const { open: openSignIn } = useSignInModal();
 
   return (
     <div className="min-h-screen bg-[#090B1A] pb-24">
@@ -279,22 +281,20 @@ export default function PricingPage() {
                 </li>
               </ul>
 
-              <Link
-                href={plan.ctaHref}
-                className="block text-center rounded-xl py-2.5 text-sm font-semibold transition-all"
+              <button
+                onClick={openSignIn}
+                className="block w-full text-center rounded-xl py-2.5 text-sm font-semibold transition-all cursor-pointer"
                 style={plan.highlight ? {
                   background: "linear-gradient(100deg, #6A4CFF, #2F6BFF)",
                   color: "#F2F6FF",
-                  textDecoration: "none",
                 } : {
                   background: "#1E2140",
                   color: "#A8B0D8",
                   border: "1px solid #2A2F4A",
-                  textDecoration: "none",
                 }}
               >
                 {plan.cta}
-              </Link>
+              </button>
             </div>
           ))}
         </div>
@@ -466,17 +466,16 @@ export default function PricingPage() {
           <p className="text-[#A8B0D8] text-sm max-w-sm mx-auto mb-7">
             No card required. Sign in with your email and get creating in seconds.
           </p>
-          <Link
-            href="/auth/signin"
-            className="inline-block rounded-xl px-10 py-3.5 font-semibold text-sm text-[#F2F6FF] transition-all hover:opacity-90"
+          <button
+            onClick={openSignIn}
+            className="inline-block rounded-xl px-10 py-3.5 font-semibold text-sm text-[#F2F6FF] transition-all hover:opacity-90 cursor-pointer"
             style={{
               background: "linear-gradient(100deg, #6A4CFF 0%, #2F6BFF 100%)",
-              textDecoration: "none",
               boxShadow: "0 8px 32px rgba(106,76,255,.35)",
             }}
           >
             Create free account →
-          </Link>
+          </button>
           <p className="text-xs text-[#4A5280] mt-4">
             Secure payments via Stripe &amp; Paystack
           </p>

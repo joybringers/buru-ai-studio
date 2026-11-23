@@ -14,6 +14,7 @@ import {
 import { BLOCKED_TERMS } from "@/data/fake";
 import { PROMPT_SUGGESTIONS } from "@/data/prompt-suggestions";
 import { useUser } from "@/context/UserContext";
+import { useSignInModal } from "@/context/SignInModalContext";
 
 type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
 
@@ -132,6 +133,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://buruai.elmorilx.com"
 export default function StudioPage() {
   const { balance, refreshBalance } = useUser();
   const { data: session } = useSession();
+  const { open: openSignIn } = useSignInModal();
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [prompt, setPrompt] = useState("");
@@ -294,6 +296,7 @@ export default function StudioPage() {
   // ── Generation ──────────────────────────────────────────────────────────────
 
   async function handleGenerate() {
+    if (!session?.user?.id) { openSignIn(); return; }
     setPhase("generating");
     setErrorMsg(null);
     setResultUrl(null);
@@ -314,6 +317,7 @@ export default function StudioPage() {
         }),
       });
       const body = await res.json();
+      if (res.status === 401) { setPhase("idle"); openSignIn(); return; }
       if (!res.ok) { setErrorMsg(body.error ?? "Generation failed"); setPhase("error"); return; }
       jobId = body.jobId;
     } catch {

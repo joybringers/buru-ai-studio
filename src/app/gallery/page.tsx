@@ -6,7 +6,7 @@ import GalleryClient from "./GalleryClient";
 
 export default async function GalleryPage() {
   const session = await auth();
-  if (!session?.user?.id) redirect("/auth/signin");
+  if (!session?.user?.id) redirect("/studio");
 
   const rows = await prisma.asset.findMany({
     where: { userId: session.user.id },

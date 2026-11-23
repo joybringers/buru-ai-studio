@@ -2,7 +2,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import type { MessageParam } from "@anthropic-ai/sdk/resources/messages";
+import { useSignInModal } from "@/context/SignInModalContext";
 
 type Message = {
   role: "user" | "assistant";
@@ -57,6 +59,8 @@ function parseCreation(text: string): { cleanText: string; creation: CreationCar
 
 export default function ChatPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const { open: openSignIn } = useSignInModal();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -70,6 +74,7 @@ export default function ChatPage() {
   const send = useCallback(
     async (text: string) => {
       if (!text.trim() || isStreaming) return;
+      if (!session?.user?.id) { openSignIn(); return; }
       const userMsg: Message = { role: "user", content: text.trim() };
       const history = [...messages, userMsg];
       setMessages(history);
@@ -119,7 +124,7 @@ export default function ChatPage() {
         setIsStreaming(false);
       }
     },
-    [messages, isStreaming]
+    [messages, isStreaming, session?.user?.id, openSignIn]
   );
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {

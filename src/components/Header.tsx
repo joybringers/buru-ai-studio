@@ -7,12 +7,14 @@ import { creditsToGBP } from "@/config";
 import { useUser } from "@/context/UserContext";
 import TopUpModal from "@/components/TopUpModal";
 import BuruLogo from "@/components/BuruLogo";
+import { useSignInModal } from "@/context/SignInModalContext";
 
 export default function Header() {
   const { balance, monthlySpent, monthlyCap } = useUser();
   const { data: session } = useSession();
   const pathname = usePathname();
   const [showTopUp, setShowTopUp] = useState(false);
+  const { open: openSignIn } = useSignInModal();
   const capPct = Math.min((monthlySpent / monthlyCap) * 100, 100);
   const nearCap = capPct >= 80;
 
@@ -93,18 +95,18 @@ export default function Header() {
 
             {!session?.user && (
               <div className="flex items-center gap-2">
-                <Link
-                  href="/auth/signin"
+                <button
+                  onClick={openSignIn}
                   className="text-xs text-[#A8B0D8] hover:text-[#F2F6FF] transition-colors px-3 py-1.5"
                 >
                   Sign in
-                </Link>
-                <Link
-                  href="/auth/signin"
+                </button>
+                <button
+                  onClick={openSignIn}
                   className="text-xs font-semibold bg-white hover:bg-[#F2F6FF] text-[#090B1A] px-4 py-1.5 rounded-lg transition-colors"
                 >
                   Start for free →
-                </Link>
+                </button>
               </div>
             )}
           </div>
