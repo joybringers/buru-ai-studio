@@ -7,6 +7,7 @@ import { creditsToGBP } from "@/config";
 import BuruLogo from "@/components/BuruLogo";
 import { useUser } from "@/context/UserContext";
 import TopUpModal from "./TopUpModal";
+import { useSignInModal } from "@/context/SignInModalContext";
 
 function isActivePath(pathname: string, href: string): boolean {
   const hrefPath = href.split("?")[0];
@@ -262,6 +263,7 @@ function PricingIcon() {
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { balance } = useUser();
   const { data: session } = useSession();
+  const { open: openSignIn } = useSignInModal();
   const [showTopUp, setShowTopUp] = useState(false);
 
   return (
@@ -356,21 +358,19 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             </>
           ) : (
             <>
-              <Link
-                href="/auth/signin"
-                onClick={onNavigate}
-                className="block w-full text-center px-3 py-2.5 rounded-xl text-white text-sm font-bold transition-colors"
+              <button
+                onClick={() => { onNavigate?.(); openSignIn(); }}
+                className="block w-full text-center px-3 py-2.5 rounded-xl text-white text-sm font-bold transition-colors cursor-pointer"
                 style={{ background: "linear-gradient(100deg, #6A4CFF 0%, #2F6BFF 100%)" }}
               >
                 Start for free
-              </Link>
-              <Link
-                href="/auth/signin"
-                onClick={onNavigate}
-                className="block w-full text-center px-3 py-2 rounded-xl text-[#4A5280] hover:text-[#F2F6FF] text-xs transition-colors"
+              </button>
+              <button
+                onClick={() => { onNavigate?.(); openSignIn(); }}
+                className="block w-full text-center px-3 py-2 rounded-xl text-[#4A5280] hover:text-[#F2F6FF] text-xs transition-colors cursor-pointer"
               >
                 Sign in
-              </Link>
+              </button>
             </>
           )}
         </div>

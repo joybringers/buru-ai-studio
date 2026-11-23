@@ -304,8 +304,7 @@ export default function Home() {
   const submit = () => {
     const m = MODES.find((x) => x.id === mode);
     if (!m) return;
-    // Film mode requires auth — open modal instead of redirecting to /projects
-    if (mode === "film" && !session?.user?.id) { openSignIn(); return; }
+    if (!session?.user?.id) { openSignIn(); return; }
     const href =
       prompt && mode !== "film"
         ? `${m.href}${m.href.includes("?") ? "&" : "?"}prompt=${encodeURIComponent(prompt)}`
